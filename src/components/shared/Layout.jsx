@@ -6,24 +6,40 @@ import Navbar from './Navbar';
 
 export default function Layout() {
   const { user } = useAuthStore();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Mobile sidebar toggle only; desktop uses CSS hover
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Protected route check
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-obsidian-950">
-      {/* Sidebar Navigation */}
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div
+      className="flex h-screen w-screen overflow-hidden relative"
+      style={{ background: 'var(--bg-page)' }}
+    >
+      {/* Ambient orbs */}
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
+      <div className="orb orb-3" />
 
-      {/* Main Panel */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
-        <Navbar onMenuToggle={() => setSidebarOpen(true)} />
-        
-        {/* Scrollable Router View */}
-        <main className="flex-1 overflow-y-auto px-6 py-8 bg-grid-pattern relative">
+      {/* ── Sidebar (hover-open on desktop, slide-in on mobile) ── */}
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+      />
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+        />
+      )}
+
+      {/* ── Main panel ── */}
+      <div className="flex-1 flex flex-col min-w-0 h-full relative z-10 overflow-hidden">
+        <Navbar onMobileMenuToggle={() => setMobileOpen(true)} />
+
+        <main className="flex-1 overflow-y-auto bg-grid-pattern relative px-6 py-8">
           <Outlet />
         </main>
       </div>

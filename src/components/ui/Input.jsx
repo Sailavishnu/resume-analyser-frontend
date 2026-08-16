@@ -11,17 +11,16 @@ export default function Input({
   register = {}, // For react-hook-form registration
   ...props
 }) {
-  const inputBaseStyles = `
-    w-full px-3 py-2 text-sm bg-obsidian-900 border text-gray-200 placeholder-gray-500 rounded-lg
-    focus:outline-none focus:ring-1 focus:ring-brand-blue focus:border-brand-blue
-    transition-all duration-150
-    ${error ? 'border-brand-rose' : 'border-white/[0.08] hover:border-white/[0.15]'}
+  const inputBaseClass = `
+    w-full px-3 py-2 text-sm rounded-xl
+    focus:outline-none transition-all duration-150 input-glass
+    ${error ? 'border-brand-rose!' : ''}
   `;
 
   return (
     <div className={`flex flex-col gap-1.5 w-full ${className}`}>
       {label && (
-        <label htmlFor={id} className="text-xs font-medium text-gray-400">
+        <label htmlFor={id} className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
           {label}
         </label>
       )}
@@ -29,13 +28,14 @@ export default function Input({
       {type === 'select' ? (
         <select
           id={id}
-          className={`${inputBaseStyles} cursor-pointer`}
+          className={`${inputBaseClass} cursor-pointer`}
+          style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}
           {...register}
           {...props}
         >
           {placeholder && <option value="">{placeholder}</option>}
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-obsidian-900 text-gray-200">
+            <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
           ))}
@@ -44,7 +44,8 @@ export default function Input({
         <textarea
           id={id}
           placeholder={placeholder}
-          className={`${inputBaseStyles} min-h-[100px] resize-y`}
+          className={`${inputBaseClass} min-h-[100px] resize-y`}
+          style={{ color: 'var(--text-primary)' }}
           {...register}
           {...props}
         />
@@ -53,7 +54,8 @@ export default function Input({
           id={id}
           type={type}
           placeholder={placeholder}
-          className={inputBaseStyles}
+          className={inputBaseClass}
+          style={{ color: 'var(--text-primary)' }}
           {...register}
           {...props}
         />
@@ -67,3 +69,4 @@ export default function Input({
     </div>
   );
 }
+

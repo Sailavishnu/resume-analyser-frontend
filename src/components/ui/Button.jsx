@@ -24,9 +24,9 @@ export default function Button({
 
   const variantStyles = {
     primary: 'bg-gradient-to-r from-brand-indigo to-brand-violet hover:from-brand-indigo/90 hover:to-brand-violet/90 text-white shadow-md shadow-brand-indigo/10 border border-brand-indigo/20',
-    secondary: 'bg-obsidian-800 hover:bg-obsidian-700 text-white border border-white/[0.08] hover:border-white/[0.12]',
-    outline: 'bg-transparent border border-white/[0.15] hover:bg-white/[0.04] text-gray-200 hover:text-white',
-    ghost: 'bg-transparent hover:bg-white/[0.04] text-gray-400 hover:text-white',
+    secondary: 'glassmorphic hover:border-brand-indigo/30 text-[var(--text-secondary)] border',
+    outline: 'bg-transparent border text-[var(--text-secondary)] hover:bg-[rgba(99,102,241,0.06)]',
+    ghost: 'bg-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[rgba(99,102,241,0.06)]',
     danger: 'bg-gradient-to-r from-brand-rose to-rose-700 hover:from-brand-rose/90 hover:to-rose-700/90 text-white border border-brand-rose/20',
     teal: 'bg-gradient-to-r from-brand-teal to-brand-emerald hover:from-brand-teal/90 hover:to-brand-emerald/90 text-white border border-brand-teal/20',
   };
