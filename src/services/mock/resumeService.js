@@ -57,14 +57,50 @@ export const resumeService = {
     };
   },
 
-  async compareVersions(v1Id, v2Id) {
-    await new Promise(r => setTimeout(r, 300));
+  async compareVersions(resumeA, resumeB) {
+    await new Promise(r => setTimeout(r, 250));
+    if (!resumeA || !resumeB) return null;
+
+    const scoreA = resumeA.atsScore || resumeA.score || 70;
+    const scoreB = resumeB.atsScore || resumeB.score || 85;
+    const delta = scoreB - scoreA;
+
+    const skillsA = resumeA.analysis?.keywords?.matched || ['JavaScript', 'HTML5', 'CSS3', 'Git'];
+    const skillsB = resumeB.analysis?.keywords?.matched || ['React', 'JavaScript', 'Node.js', 'SQL', 'Zustand'];
+
+    const addedSkills = skillsB.filter(s => !skillsA.some(sa => sa.toLowerCase() === s.toLowerCase()));
+    const missingSkills = (resumeB.analysis?.keywords?.missing || []).slice(0, 4);
+
     return {
-      v1: { name: 'Priya_Lakshmi_CV_v1.pdf', score: 68, ats: 72, skillsCount: 8, issues: 5 },
-      v2: { name: 'Priya_Lakshmi_CV_v2.pdf', score: 84, ats: 88, skillsCount: 14, issues: 1 },
-      improvementDelta: '+16 Points',
-      addedSkills: ['Docker', 'TypeScript', 'TailwindCSS', 'Redis'],
-      resolvedIssues: ['Replaced 2-column table with single-column ATS flow', 'Added Google XYZ metrics to 4 project bullets', 'Created dedicated Skills categorization']
+      v1: {
+        id: resumeA.id,
+        name: resumeA.name,
+        role: resumeA.role || 'Baseline CV',
+        score: resumeA.score || 70,
+        ats: scoreA,
+        slot: resumeA.slot || 'secondary',
+        skillsCount: skillsA.length,
+        skills: skillsA
+      },
+      v2: {
+        id: resumeB.id,
+        name: resumeB.name,
+        role: resumeB.role || 'Target CV',
+        score: resumeB.score || 85,
+        ats: scoreB,
+        slot: resumeB.slot || 'primary',
+        skillsCount: skillsB.length,
+        skills: skillsB
+      },
+      improvementDelta: delta >= 0 ? `+${delta} ATS Points` : `${delta} ATS Points`,
+      deltaPositive: delta >= 0,
+      addedSkills: addedSkills.length > 0 ? addedSkills : ['TailwindCSS', 'Zustand State'],
+      missingSkills,
+      resolvedIssues: [
+        'Adopted standard ATS single-column hierarchy',
+        'Quantified work experience deliverables with percentage outcomes',
+        'Added categorized skills block'
+      ]
     };
   }
 };

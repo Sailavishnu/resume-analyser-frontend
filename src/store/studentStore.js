@@ -5,6 +5,8 @@ const MOCK_RESUMES = [
     id: 'res-1',
     name: 'Priya_Lakshmi_CV_2026.pdf',
     version: 'v2.1',
+    slot: 'primary',
+    isPrimary: true,
     uploadDate: '2026-07-20T10:30:00Z',
     score: 84,
     atsScore: 88,
@@ -65,6 +67,8 @@ const MOCK_RESUMES = [
     id: 'res-2',
     name: 'Priya_Lakshmi_Backend_CV.pdf',
     version: 'v1.0',
+    slot: 'secondary',
+    isPrimary: false,
     uploadDate: '2026-07-24T18:15:00Z',
     score: 68,
     atsScore: 72,
@@ -307,6 +311,37 @@ export const useStudentStore = create((set, get) => ({
   activeInterview: null,
 
   setSelectedResumeId: (id) => set({ selectedResumeId: id }),
+
+  setAsPrimaryResume: (id) => {
+    set(state => ({
+      resumes: state.resumes.map(r => ({
+        ...r,
+        isPrimary: r.id === id,
+        slot: r.id === id ? 'primary' : (r.slot === 'primary' ? 'secondary' : r.slot)
+      })),
+      selectedResumeId: id
+    }));
+  },
+
+  setAsSecondaryResume: (id) => {
+    set(state => ({
+      resumes: state.resumes.map(r => ({
+        ...r,
+        slot: r.id === id ? 'secondary' : (r.slot === 'secondary' ? null : r.slot)
+      }))
+    }));
+  },
+
+  deleteResume: (id) => {
+    set(state => {
+      if (state.resumes.length <= 1) return state;
+      const remaining = state.resumes.filter(r => r.id !== id);
+      return {
+        resumes: remaining,
+        selectedResumeId: state.selectedResumeId === id ? remaining[0].id : state.selectedResumeId
+      };
+    });
+  },
 
   getSelectedResume: () => {
     const { resumes, selectedResumeId } = get();
