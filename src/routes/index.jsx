@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from '../store/authStore';
 
 // Layouts
 import Layout from '../components/shared/Layout';
@@ -7,6 +8,7 @@ import Layout from '../components/shared/Layout';
 // Auth
 import SignIn from '../pages/auth/SignIn';
 import SignUp from '../pages/auth/SignUp';
+import AdminLogin from '../pages/auth/AdminLogin';
 
 // Student Portal Pages
 import StudentDashboard from '../pages/student/Dashboard';
@@ -41,15 +43,42 @@ import AdminContentAudit from '../pages/admin/ContentAudit';
 import AdminAnalytics from '../pages/admin/Analytics';
 import AdminSettings from '../pages/admin/Settings';
 
+// ── Route guard: requires login, redirects to login if no user ──
+function ProtectedRoute({ children, requiredRole }) {
+  const { user } = useAuthStore();
+  const location = useLocation();
+
+  if (!user) {
+    // If trying to access admin, redirect to admin login
+    if (requiredRole === 'admin') {
+      return <Navigate to="/admin/login" replace />;
+    }
+    return <Navigate to="/login" replace />;
+  }
+
+  // Role mismatch — redirect to correct portal
+  if (requiredRole && user.role !== requiredRole) {
+    const roleHome = user.role === 'admin' ? '/admin' : user.role === 'hr' ? '/hr' : '/student';
+    return <Navigate to={roleHome} replace />;
+  }
+
+  return children;
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Auth Routes */}
+      {/* ═══ Auth Routes ═══ */}
       <Route path="/login" element={<SignIn />} />
       <Route path="/register" element={<SignUp />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* Student Portal Protected Routes */}
-      <Route path="/student" element={<Layout />}>
+      {/* ═══ Student Portal — Protected ═══ */}
+      <Route path="/student" element={
+        <ProtectedRoute requiredRole="student">
+          <Layout />
+        </ProtectedRoute>
+      }>
         <Route index element={<StudentDashboard />} />
         <Route path="guide" element={<ResumeGuide />} />
         <Route path="builder" element={<ResumeBuilder />} />
@@ -62,15 +91,19 @@ export default function AppRoutes() {
         <Route path="profile" element={<StudentProfile />} />
         <Route path="settings" element={<StudentSettings />} />
 
-        {/* Legacy deep links redirected seamlessly to unified analysis engine */}
+        {/* Legacy deep links → unified analysis engine */}
         <Route path="upload" element={<Navigate to="/student/analysis?tab=overview" replace />} />
         <Route path="ats" element={<Navigate to="/student/analysis?tab=ats" replace />} />
         <Route path="jdmatch" element={<Navigate to="/student/analysis?tab=jdmatch" replace />} />
         <Route path="enhancement" element={<Navigate to="/student/analysis?tab=enhancement" replace />} />
       </Route>
 
-      {/* HR Portal Protected Routes */}
-      <Route path="/hr" element={<Layout />}>
+      {/* ═══ HR Portal — Protected ═══ */}
+      <Route path="/hr" element={
+        <ProtectedRoute requiredRole="hr">
+          <Layout />
+        </ProtectedRoute>
+      }>
         <Route index element={<HrDashboard />} />
         <Route path="jobs" element={<HrJobs />} />
         <Route path="candidates" element={<HrCandidates />} />
@@ -84,8 +117,12 @@ export default function AppRoutes() {
         <Route path="settings" element={<HrSettings />} />
       </Route>
 
-      {/* Admin Portal Protected Routes */}
-      <Route path="/admin" element={<Layout />}>
+      {/* ═══ Admin Portal — Protected (separate login) ═══ */}
+      <Route path="/admin" element={
+        <ProtectedRoute requiredRole="admin">
+          <Layout />
+        </ProtectedRoute>
+      }>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="content" element={<AdminContentAudit />} />
@@ -95,7 +132,7 @@ export default function AppRoutes() {
         <Route path="notifications" element={<StudentNotifications />} />
       </Route>
 
-      {/* Default Redirects */}
+      {/* ═══ Default Redirects ═══ */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

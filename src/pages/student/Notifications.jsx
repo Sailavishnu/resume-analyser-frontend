@@ -7,10 +7,10 @@ import toast from 'react-hot-toast';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([
-    { id: 1, title: 'AI Resume Analysis Complete', desc: 'Sarah_Connor_CV_2026.pdf was parsed with a rating of 84%. Review recommendations.', time: 'Today, 2:30 PM', read: false, type: 'file' },
-    { id: 2, title: 'Interview Scheduled', desc: 'Vercel scheduled a Frontend Interview for July 28th at 10:00 AM.', time: 'Today, 9:00 AM', read: false, type: 'calendar' },
-    { id: 3, title: 'JD Match Alert: Vercel', desc: 'Your profile matches 92% of the keywords on Vercel\'s Senior Developer listing.', time: 'Yesterday', read: true, type: 'briefcase' },
-    { id: 4, title: 'Platform Update', desc: 'Antigravity core parser upgraded. Improved response detection rates in Mock Interview simulator.', time: '3 days ago', read: true, type: 'bell' }
+    { id: 1, title: 'AI Resume Analysis Complete', desc: 'Priya_Lakshmi_Resume.pdf was parsed with a rating of 84%. Review recommendations.', time: 'Today, 2:30 PM', read: false, type: 'file' },
+    { id: 2, title: 'Interview Scheduled', desc: 'Zoho scheduled a Technical Interview for July 28th at 10:00 AM.', time: 'Today, 9:00 AM', read: false, type: 'calendar' },
+    { id: 3, title: 'JD Match Alert: Zoho', desc: 'Your profile matches 92% of the keywords on Zoho\'s Full Stack listing.', time: 'Yesterday', read: true, type: 'briefcase' },
+    { id: 4, title: 'Platform Update', desc: 'Core ATS parser upgraded. Improved response detection rates in Mock Interview simulator.', time: '3 days ago', read: true, type: 'bell' }
   ]);
 
   const handleMarkAllRead = () => {

@@ -66,10 +66,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           className="h-8 w-8 min-w-[32px] rounded-xl flex items-center justify-center text-white font-bold text-sm"
           style={{ background: logoGrad, boxShadow: logoGlow }}
         >
-          {isAdmin ? '🛡️' : 'A'}
+          {isAdmin ? '🛡️' : 'R'}
         </div>
         <span className="sidebar-logo-text font-bold text-sm font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Antigravity AI
+          Resume AI
         </span>
       </Link>
 

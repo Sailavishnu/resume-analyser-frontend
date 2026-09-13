@@ -59,10 +59,10 @@ export default function SignUp() {
         <div className="flex items-center gap-2.5 z-10">
           <div className="h-10 w-10 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
             style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>
-            A
+            R
           </div>
           <span className="font-bold text-lg tracking-tight font-heading" style={{ color: 'var(--text-primary)' }}>
-            Antigravity AI
+            Resume AI
           </span>
         </div>
 
@@ -147,7 +147,7 @@ export default function SignUp() {
               <Input
                 label="Full Name"
                 id="name"
-                placeholder="e.g. Sarah Connor"
+                placeholder="e.g. Priya Lakshmi"
                 error={errors.name?.message}
                 register={register('name', { required: 'Name is required' })}
               />
@@ -156,7 +156,7 @@ export default function SignUp() {
                 label="Email Address"
                 id="email"
                 type="email"
-                placeholder="e.g. sarah.c@gmail.com"
+                placeholder="e.g. priya.lakshmi@gmail.com"
                 error={errors.email?.message}
                 register={register('email', {
                   required: 'Email address is required',

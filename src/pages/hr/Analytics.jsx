@@ -32,7 +32,7 @@ export default function Analytics() {
   const sourceData = [
     { name: 'Linkedin', value: 450, color: '#6366f1' },
     { name: 'Direct Referrals', value: 180, color: '#10b981' },
-    { name: 'Antigravity Portal', value: 310, color: '#0d9488' }
+    { name: 'Campus Placement Portal', value: 310, color: '#0d9488' }
   ];
 
   return (

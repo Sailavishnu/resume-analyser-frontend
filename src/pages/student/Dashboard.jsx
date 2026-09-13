@@ -60,7 +60,7 @@ export default function Dashboard() {
             Welcome back, {user?.name.split(' ')[0]}! <span className="animate-wave origin-bottom-right inline-block">👋</span>
           </h1>
           <p className="text-xs text-gray-400 max-w-xl leading-relaxed">
-            Your current primary resume is <span className="text-brand-blue font-semibold">{resume?.name || 'Sarah_Connor_CV_2026.pdf'}</span>. We have generated some actionable feedback for optimization.
+            Your current primary resume is <span className="text-brand-blue font-semibold">{resume?.name || 'Priya_Lakshmi_CV_2026.pdf'}</span>. We have generated some actionable feedback for optimization.
           </p>
         </div>
         <div className="flex gap-3 z-10">

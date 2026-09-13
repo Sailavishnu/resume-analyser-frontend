@@ -18,7 +18,7 @@ export default function SignIn() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      email: 'sarah.c@gmail.com',
+      email: 'priya.lakshmi@gmail.com',
       password: 'password123',
     }
   });
@@ -64,10 +64,10 @@ export default function SignIn() {
         <div className="flex items-center gap-2.5 z-10">
           <div className="h-10 w-10 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg"
             style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', boxShadow: '0 8px 24px rgba(99,102,241,0.4)' }}>
-            A
+            R
           </div>
           <span className="font-bold text-lg tracking-tight font-heading" style={{ color: 'var(--text-primary)' }}>
-            AI Resume Analysis and Recruitment System
+            AI Resume Analysis & Placement System
           </span>
         </div>
 
@@ -81,7 +81,7 @@ export default function SignIn() {
             </span>
           </h1>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            Antigravity matches applicant potential directly to employer campaigns. Optimize resume ATS compliance, practice AI mock interviews, and coordinate workflows inside a unified recruitment portal.
+            Our AI engine matches applicant potential directly to employer campaigns. Optimize resume ATS compliance, practice AI mock interviews, and coordinate workflows inside a unified recruitment portal.
           </p>
 
           {/* Feature pills */}
@@ -160,7 +160,7 @@ export default function SignIn() {
                 label="Email Address"
                 id="email"
                 type="email"
-                placeholder="e.g. sarah.c@gmail.com"
+                placeholder="e.g. priya.lakshmi@gmail.com"
                 error={errors.email?.message}
                 register={register('email', {
                   required: 'Email address is required',
@@ -214,6 +214,8 @@ export default function SignIn() {
                 Create an account
               </Link>
             </div>
+
+
           </div>
         </div>
       </div>

@@ -23,7 +23,7 @@ export default function Resources() {
       title: 'Action Verbs and Power Phrases Checklist',
       desc: 'Review 200+ active words to optimize experience lines and pass ATS parser benchmarks.',
       duration: '1 hr',
-      source: 'Antigravity Careers'
+      source: 'Placement Prep Academy'
     },
     {
       id: 'res-3',

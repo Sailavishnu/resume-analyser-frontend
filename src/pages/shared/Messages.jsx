@@ -17,23 +17,23 @@ export default function Messages() {
   const initialThreads = isHr ? [
     {
       id: 'thread-1',
-      name: 'Sarah Connor',
+      name: 'Priya Lakshmi',
       role: 'Student · Full Stack Candidate',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
       lastMessage: "I've updated my resume with the Docker and TypeScript metrics we discussed!",
       time: '10:42 AM',
       unread: 1,
       online: true,
       context: 'Applied for Senior React Developer (94% ATS Match)',
       messages: [
-        { id: 1, sender: 'them', text: 'Hello Marcus, thank you for shortlisting my application!', time: '10:30 AM' },
-        { id: 2, sender: 'me',   text: 'Hi Sarah! Your ATS score was among the top 5% of candidates. We are excited about your project work.', time: '10:35 AM' },
+        { id: 1, sender: 'them', text: 'Hello Karthik sir, thank you for shortlisting my application!', time: '10:30 AM' },
+        { id: 2, sender: 'me',   text: 'Hi Priya! Your ATS score was among the top 5% of candidates. We are excited about your project work.', time: '10:35 AM' },
         { id: 3, sender: 'them', text: "I've updated my resume with the Docker and TypeScript metrics we discussed!", time: '10:42 AM' },
       ]
     },
     {
       id: 'thread-2',
-      name: 'David Chen',
+      name: 'Aakash Sai',
       role: 'Student · Backend Developer',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
       lastMessage: 'Will the technical round include system design questions?',
@@ -42,24 +42,24 @@ export default function Messages() {
       online: false,
       context: 'Applied for Cloud Backend Engineer (88% ATS Match)',
       messages: [
-        { id: 1, sender: 'me', text: 'Hi David, checking in regarding your interview slot.', time: 'Yesterday' },
+        { id: 1, sender: 'me', text: 'Hi Aakash, checking in regarding your interview slot.', time: 'Yesterday' },
         { id: 2, sender: 'them', text: 'Will the technical round include system design questions?', time: 'Yesterday' },
       ]
     }
   ] : [
     {
       id: 'thread-1',
-      name: 'Marcus Vance',
-      role: 'Technical Recruiter @ Stripe',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      name: 'Karthik Kumar',
+      role: 'Technical Recruiter @ Zoho',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
       lastMessage: 'Your resume was among the top 5% of applicants. Are you available for a screening call this Thursday?',
       time: '11:15 AM',
       unread: 1,
       online: true,
       context: 'Application: Frontend Engineer (94% ATS Match)',
       messages: [
-        { id: 1, sender: 'them', text: 'Hello Sarah! I reviewed your analyzed resume on the Antigravity platform.', time: '11:00 AM' },
-        { id: 2, sender: 'me',   text: 'Hi Marcus! Thank you for reviewing my profile.', time: '11:05 AM' },
+        { id: 1, sender: 'them', text: 'Hello Priya! I reviewed your analyzed resume on the Placement Portal.', time: '11:00 AM' },
+        { id: 2, sender: 'me',   text: 'Hi Karthik! Thank you for reviewing my profile.', time: '11:05 AM' },
         { id: 3, sender: 'them', text: 'Your resume was among the top 5% of applicants. Are you available for a screening call this Thursday?', time: '11:15 AM' },
       ]
     },
@@ -68,25 +68,25 @@ export default function Messages() {
       name: 'Campus Placement Cell',
       role: 'Placement Coordinator',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-      lastMessage: 'Reminder: Google placement drive registration closes tonight at 11:59 PM.',
+      lastMessage: 'Reminder: Placement drive registration closes tonight at 11:59 PM.',
       time: '9:20 AM',
       unread: 0,
       online: true,
       context: 'University Placement Office',
       messages: [
-        { id: 1, sender: 'them', text: 'Reminder: Google placement drive registration closes tonight at 11:59 PM.', time: '9:20 AM' },
+        { id: 1, sender: 'them', text: 'Reminder: Placement drive registration closes tonight at 11:59 PM.', time: '9:20 AM' },
       ]
     },
     {
       id: 'thread-3',
-      name: 'Elena Rostova',
-      role: 'Talent Acquisition @ Amazon',
+      name: 'Meenakshi Devi',
+      role: 'Talent Acquisition @ Infosys',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
       lastMessage: 'We received your mock interview scorecard. Looks impressive!',
       time: '2 days ago',
       unread: 0,
       online: false,
-      context: 'Application: SDE-1 Intern',
+      context: 'Application: Systems Engineer Trainee',
       messages: [
         { id: 1, sender: 'them', text: 'We received your mock interview scorecard. Looks impressive!', time: '2 days ago' },
       ]
@@ -249,7 +249,7 @@ export default function Messages() {
           <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
             <div className="text-center my-2">
               <span className="text-[10px] px-3 py-1 rounded-full glass" style={{ color: 'var(--text-faint)' }}>
-                Direct Messaging · Verified via Antigravity Placement Platform
+                Direct Messaging · Verified via Placement & Career Portal
               </span>
             </div>
 

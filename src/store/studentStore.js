@@ -3,7 +3,7 @@ import { create } from 'zustand';
 const MOCK_RESUMES = [
   {
     id: 'res-1',
-    name: 'Sarah_Connor_CV_2026.pdf',
+    name: 'Priya_Lakshmi_CV_2026.pdf',
     uploadDate: '2026-07-20T10:30:00Z',
     score: 84,
     role: 'Fullstack Software Engineer',
@@ -54,7 +54,7 @@ const MOCK_RESUMES = [
   },
   {
     id: 'res-2',
-    name: 'Sarah_Connor_Backend_CV.pdf',
+    name: 'Priya_Lakshmi_Backend_CV.pdf',
     uploadDate: '2026-07-24T18:15:00Z',
     score: 68,
     role: 'Backend Developer',

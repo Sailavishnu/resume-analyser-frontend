@@ -1,15 +1,29 @@
 import React, { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 export default function Layout() {
   const { user } = useAuthStore();
+  const location = useLocation();
   // Mobile sidebar toggle only; desktop uses CSS hover
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!user) return <Navigate to="/login" replace />;
+
+  // Derive the portal from the URL path for correct sidebar rendering
+  const pathPortal = location.pathname.startsWith('/admin')
+    ? 'admin'
+    : location.pathname.startsWith('/hr')
+    ? 'hr'
+    : 'student';
+
+  // Enforce: user role must match URL portal
+  if (user.role !== pathPortal) {
+    const roleHome = user.role === 'admin' ? '/admin' : user.role === 'hr' ? '/hr' : '/student';
+    return <Navigate to={roleHome} replace />;
+  }
 
   return (
     <div
