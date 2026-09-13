@@ -7,7 +7,7 @@ import {
   GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity
 } from 'lucide-react';
 
-export default function Sidebar({ mobileOpen, onMobileClose }) {
+export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
   const { user } = useAuthStore();
   const role = user?.role || 'student';
   const isHr = role === 'hr';
@@ -60,7 +60,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
         to={homePath}
         className="flex items-center gap-3 px-4 py-5 border-b shrink-0"
         style={{ borderColor: 'var(--border-faint)' }}
-        onClick={onMobileClose}
+        onClick={() => {
+          onNavClick?.();
+          onMobileClose?.();
+        }}
       >
         <div
           className="h-8 w-8 min-w-[32px] rounded-xl flex items-center justify-center text-white font-bold text-sm"
@@ -87,7 +90,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
             key={name}
             to={to}
             end={to === '/student' || to === '/hr' || to === '/admin'}
-            onClick={onMobileClose}
+            onClick={() => {
+              onNavClick?.();
+              onMobileClose?.();
+            }}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium
                transition-all duration-200 min-w-max
@@ -148,7 +154,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
   return (
     <>
-      <div className="sidebar-wrapper hidden lg:block relative z-20">
+      <div
+        className="sidebar-wrapper hidden lg:block relative z-20"
+        onMouseLeave={onSidebarMouseLeave}
+      >
         {inner}
       </div>
 
