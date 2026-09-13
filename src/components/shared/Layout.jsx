@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import PageTransition from './PageTransition';
 
 export default function Layout() {
   const { user } = useAuthStore();
@@ -54,7 +56,11 @@ export default function Layout() {
         <Navbar onMobileMenuToggle={() => setMobileOpen(true)} />
 
         <main className="flex-1 overflow-y-auto bg-grid-pattern relative px-6 py-8">
-          <Outlet />
+          <AnimatePresence mode="wait">
+            <PageTransition key={location.pathname}>
+              <Outlet />
+            </PageTransition>
+          </AnimatePresence>
         </main>
       </div>
     </div>

@@ -44,11 +44,11 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
   const nav = isAdmin ? adminNav : isHr ? hrNav : studentNav;
 
-  const accentColor  = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#3b82f6';
-  const accentBg     = isAdmin ? 'rgba(139,92,246,0.13)' : isHr ? 'rgba(13,148,136,0.13)' : 'rgba(59,130,246,0.13)';
-  const accentBorder = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#3b82f6';
-  const logoGrad     = isAdmin ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : isHr ? 'linear-gradient(135deg,#0d9488,#10b981)' : 'linear-gradient(135deg,#3b82f6,#6366f1)';
-  const logoGlow     = isAdmin ? '0 4px 18px rgba(139,92,246,0.45)' : isHr ? '0 4px 18px rgba(13,148,136,0.45)' : '0 4px 18px rgba(59,130,246,0.45)';
+  const accentColor  = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#0ea5e9';
+  const accentBg     = isAdmin ? 'rgba(139,92,246,0.13)' : isHr ? 'rgba(13,148,136,0.13)' : 'rgba(14,165,233,0.13)';
+  const accentBorder = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#0ea5e9';
+  const logoGrad     = isAdmin ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : isHr ? 'linear-gradient(135deg,#0d9488,#10b981)' : 'linear-gradient(135deg,#0ed3cf,#0ea5e9)';
+  const logoGlow     = isAdmin ? '0 4px 18px rgba(139,92,246,0.45)' : isHr ? '0 4px 18px rgba(13,148,136,0.45)' : '0 4px 18px rgba(14,211,207,0.40)';
 
   const homePath = isAdmin ? '/admin' : isHr ? '/hr' : '/student';
   const portalTitle = isAdmin ? 'Admin Console' : isHr ? 'HR Recruiter' : 'Student Portal';

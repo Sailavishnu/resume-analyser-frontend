@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentStore } from '../../store/studentStore';
 import {
   FileText, Sparkles, SearchCode, BarChart3, Upload, CheckCircle2,
@@ -105,34 +106,42 @@ export default function ResumeAnalysis() {
       </div>
 
       {/* ── Tab Content Panes ── */}
-      <div>
-        {activeTab === 'overview' && (
-          <UploadAndManagePane
-            resumes={resumes}
-            selectedId={resume?.id}
-            onSelect={setSelectedResumeId}
-            onUpload={handleFileUpload}
-            analyzing={analyzing}
-            onGoToAts={() => handleTabChange('ats')}
-          />
-        )}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          {activeTab === 'overview' && (
+            <UploadAndManagePane
+              resumes={resumes}
+              selectedId={resume?.id}
+              onSelect={setSelectedResumeId}
+              onUpload={handleFileUpload}
+              analyzing={analyzing}
+              onGoToAts={() => handleTabChange('ats')}
+            />
+          )}
 
-        {activeTab === 'ats' && (
-          <AtsScorecardPane
-            resume={resume}
-            onGoToJd={() => handleTabChange('jdmatch')}
-            onGoToEnhance={() => handleTabChange('enhancement')}
-          />
-        )}
+          {activeTab === 'ats' && (
+            <AtsScorecardPane
+              resume={resume}
+              onGoToJd={() => handleTabChange('jdmatch')}
+              onGoToEnhance={() => handleTabChange('enhancement')}
+            />
+          )}
 
-        {activeTab === 'jdmatch' && (
-          <JdMatchingPane resume={resume} />
-        )}
+          {activeTab === 'jdmatch' && (
+            <JdMatchingPane resume={resume} />
+          )}
 
-        {activeTab === 'enhancement' && (
-          <EnhancementPane resume={resume} />
-        )}
-      </div>
+          {activeTab === 'enhancement' && (
+            <EnhancementPane resume={resume} />
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

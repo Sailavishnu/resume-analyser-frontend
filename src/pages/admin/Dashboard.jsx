@@ -8,6 +8,7 @@ import {
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
+import ScrollReveal, { StaggerContainer, StaggerItem } from '../../components/ui/ScrollReveal';
 
 export default function AdminDashboard() {
   const { stats, users, auditLogs } = useAdminStore();
@@ -23,56 +24,60 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b" style={{ borderColor: 'var(--border-faint)' }}>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
-              Master Admin Console
-            </h1>
-            <Badge variant="violet">System Admin</Badge>
+      <ScrollReveal variant="fade" duration={0.5}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b" style={{ borderColor: 'var(--border-faint)' }}>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
+                Master Admin Console
+              </h1>
+              <Badge variant="violet">System Admin</Badge>
+            </div>
+            <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
+              Real-time platform metrics, user moderation, resume audit streams, and system configuration.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Real-time platform metrics, user moderation, resume audit streams, and system configuration.
-          </p>
-        </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')} icon={Users}>
-            Manage Users
-          </Button>
-          <Button variant="primary" size="sm" onClick={() => navigate('/admin/analytics')} icon={TrendingUp}>
-            Platform Analytics
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')} icon={Users}>
+              Manage Users
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => navigate('/admin/analytics')} icon={TrendingUp}>
+              Platform Analytics
+            </Button>
+          </div>
         </div>
-      </div>
+      </ScrollReveal>
 
       {/* ── KPI Metric Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StaggerContainer staggerDelay={0.08} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((m, i) => {
           const Icon = m.icon;
           return (
-            <Card key={i} className="p-5 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{m.label}</span>
-                <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
-                  <Icon className="h-4 w-4" />
+            <StaggerItem key={i} variant="pop">
+              <Card className="p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{m.label}</span>
+                  <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-500">
+                    <Icon className="h-4 w-4" />
+                  </div>
                 </div>
-              </div>
-              <div className="text-2xl font-extrabold font-heading" style={{ color: 'var(--text-primary)' }}>
-                {m.value}
-              </div>
-              <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> {m.change}
-              </p>
-            </Card>
+                <div className="text-2xl font-extrabold font-heading" style={{ color: 'var(--text-primary)' }}>
+                  {m.value}
+                </div>
+                <p className="text-[11px] text-emerald-500 font-medium flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" /> {m.change}
+                </p>
+              </Card>
+            </StaggerItem>
           );
         })}
-      </div>
+      </StaggerContainer>
 
       {/* ── Main Content Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Registered Users */}
-        <div className="lg:col-span-2 space-y-4">
+        <ScrollReveal variant="slide-up" delay={0.1} className="lg:col-span-2 space-y-4">
           <Card className="p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
@@ -133,10 +138,10 @@ export default function AdminDashboard() {
               </table>
             </div>
           </Card>
-        </div>
+        </ScrollReveal>
 
         {/* Security & Audit Stream */}
-        <div className="space-y-4">
+        <ScrollReveal variant="slide-right" delay={0.15} className="space-y-4">
           <Card className="p-5 space-y-4">
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-brand-violet" />
@@ -162,7 +167,7 @@ export default function AdminDashboard() {
               ))}
             </div>
           </Card>
-        </div>
+        </ScrollReveal>
       </div>
     </div>
   );

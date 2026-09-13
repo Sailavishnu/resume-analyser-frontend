@@ -33,11 +33,14 @@ export default function Button({
 
   return (
     <motion.button
-      whileTap={disabled || loading ? {} : { scale: 0.98 }}
+      whileHover={disabled || loading ? {} : { scale: 1.02 }}
+      whileTap={disabled || loading ? {} : { scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
       className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      style={{ willChange: 'transform' }}
       {...props}
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -46,3 +49,4 @@ export default function Button({
     </motion.button>
   );
 }
+

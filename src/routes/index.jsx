@@ -1,62 +1,61 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
-// Layouts
+// Always-loaded layout shell (small & critical)
 import Layout from '../components/shared/Layout';
+import LoadingSpinner from '../components/shared/LoadingSpinner';
 
+// ─── Lazy-loaded Pages ────────────────────────────────────────────────
 // Auth
-import SignIn from '../pages/auth/SignIn';
-import SignUp from '../pages/auth/SignUp';
-import AdminLogin from '../pages/auth/AdminLogin';
+const SignIn     = lazy(() => import('../pages/auth/SignIn'));
+const SignUp     = lazy(() => import('../pages/auth/SignUp'));
+const AdminLogin = lazy(() => import('../pages/auth/AdminLogin'));
 
-// Student Portal Pages
-import StudentDashboard from '../pages/student/Dashboard';
-import ResumeGuide from '../pages/student/ResumeGuide';
-import ResumeBuilder from '../pages/student/Builder';
-import ResumeAnalysis from '../pages/student/Analysis';
-import AiMockInterview from '../pages/student/Interview';
-import StudentApplications from '../pages/student/Applications';
-import StudentResources from '../pages/student/Resources';
-import StudentNotifications from '../pages/student/Notifications';
-import StudentProfile from '../pages/student/Profile';
-import StudentSettings from '../pages/student/Settings';
+// Student Portal
+const StudentDashboard    = lazy(() => import('../pages/student/Dashboard'));
+const ResumeGuide         = lazy(() => import('../pages/student/ResumeGuide'));
+const ResumeBuilder       = lazy(() => import('../pages/student/Builder'));
+const ResumeAnalysis      = lazy(() => import('../pages/student/Analysis'));
+const AiMockInterview     = lazy(() => import('../pages/student/Interview'));
+const StudentApplications = lazy(() => import('../pages/student/Applications'));
+const StudentResources    = lazy(() => import('../pages/student/Resources'));
+const StudentNotifications= lazy(() => import('../pages/student/Notifications'));
+const StudentProfile      = lazy(() => import('../pages/student/Profile'));
+const StudentSettings     = lazy(() => import('../pages/student/Settings'));
 
-// HR Portal Pages
-import HrDashboard from '../pages/hr/Dashboard';
-import HrJobs from '../pages/hr/Jobs';
-import HrCandidates from '../pages/hr/Candidates';
-import HrScreening from '../pages/hr/Screening';
-import HrInterviews from '../pages/hr/Interviews';
-import HrAnalytics from '../pages/hr/Analytics';
-import HrReports from '../pages/hr/Reports';
-import HrCompany from '../pages/hr/Company';
-import HrSettings from '../pages/hr/Settings';
+// HR Portal
+const HrDashboard  = lazy(() => import('../pages/hr/Dashboard'));
+const HrJobs       = lazy(() => import('../pages/hr/Jobs'));
+const HrCandidates = lazy(() => import('../pages/hr/Candidates'));
+const HrScreening  = lazy(() => import('../pages/hr/Screening'));
+const HrInterviews = lazy(() => import('../pages/hr/Interviews'));
+const HrAnalytics  = lazy(() => import('../pages/hr/Analytics'));
+const HrReports    = lazy(() => import('../pages/hr/Reports'));
+const HrCompany    = lazy(() => import('../pages/hr/Company'));
+const HrSettings   = lazy(() => import('../pages/hr/Settings'));
 
 // Shared
-import Messages from '../pages/shared/Messages';
+const Messages = lazy(() => import('../pages/shared/Messages'));
 
-// Admin Portal Pages
-import AdminDashboard from '../pages/admin/Dashboard';
-import AdminUsers from '../pages/admin/Users';
-import AdminContentAudit from '../pages/admin/ContentAudit';
-import AdminAnalytics from '../pages/admin/Analytics';
-import AdminSettings from '../pages/admin/Settings';
+// Admin Portal
+const AdminDashboard    = lazy(() => import('../pages/admin/Dashboard'));
+const AdminUsers        = lazy(() => import('../pages/admin/Users'));
+const AdminContentAudit = lazy(() => import('../pages/admin/ContentAudit'));
+const AdminAnalytics    = lazy(() => import('../pages/admin/Analytics'));
+const AdminSettings     = lazy(() => import('../pages/admin/Settings'));
 
-// ── Route guard: requires login, redirects to login if no user ──
+// ── Route guard ──────────────────────────────────────────────────────
 function ProtectedRoute({ children, requiredRole }) {
   const { user } = useAuthStore();
-  const location = useLocation();
 
   if (!user) {
-    // If trying to access admin, redirect to admin login
     if (requiredRole === 'admin') {
       return <Navigate to="/admin/login" replace />;
     }
     return <Navigate to="/login" replace />;
   }
 
-  // Role mismatch — redirect to correct portal
   if (requiredRole && user.role !== requiredRole) {
     const roleHome = user.role === 'admin' ? '/admin' : user.role === 'hr' ? '/hr' : '/student';
     return <Navigate to={roleHome} replace />;
@@ -65,76 +64,79 @@ function ProtectedRoute({ children, requiredRole }) {
   return children;
 }
 
+// ── App Routes ───────────────────────────────────────────────────────
 export default function AppRoutes() {
   return (
-    <Routes>
-      {/* ═══ Auth Routes ═══ */}
-      <Route path="/login" element={<SignIn />} />
-      <Route path="/register" element={<SignUp />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
+    <Suspense fallback={<LoadingSpinner />}>
+      <Routes>
+        {/* ═══ Auth Routes ═══ */}
+        <Route path="/login" element={<SignIn />} />
+        <Route path="/register" element={<SignUp />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-      {/* ═══ Student Portal — Protected ═══ */}
-      <Route path="/student" element={
-        <ProtectedRoute requiredRole="student">
-          <Layout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<StudentDashboard />} />
-        <Route path="guide" element={<ResumeGuide />} />
-        <Route path="builder" element={<ResumeBuilder />} />
-        <Route path="analysis" element={<ResumeAnalysis />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="interview" element={<AiMockInterview />} />
-        <Route path="applications" element={<StudentApplications />} />
-        <Route path="resources" element={<StudentResources />} />
-        <Route path="notifications" element={<StudentNotifications />} />
-        <Route path="profile" element={<StudentProfile />} />
-        <Route path="settings" element={<StudentSettings />} />
+        {/* ═══ Student Portal — Protected ═══ */}
+        <Route path="/student" element={
+          <ProtectedRoute requiredRole="student">
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<StudentDashboard />} />
+          <Route path="guide" element={<ResumeGuide />} />
+          <Route path="builder" element={<ResumeBuilder />} />
+          <Route path="analysis" element={<ResumeAnalysis />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="interview" element={<AiMockInterview />} />
+          <Route path="applications" element={<StudentApplications />} />
+          <Route path="resources" element={<StudentResources />} />
+          <Route path="notifications" element={<StudentNotifications />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="settings" element={<StudentSettings />} />
 
-        {/* Legacy deep links → unified analysis engine */}
-        <Route path="upload" element={<Navigate to="/student/analysis?tab=overview" replace />} />
-        <Route path="ats" element={<Navigate to="/student/analysis?tab=ats" replace />} />
-        <Route path="jdmatch" element={<Navigate to="/student/analysis?tab=jdmatch" replace />} />
-        <Route path="enhancement" element={<Navigate to="/student/analysis?tab=enhancement" replace />} />
-      </Route>
+          {/* Legacy deep links → unified analysis engine */}
+          <Route path="upload" element={<Navigate to="/student/analysis?tab=overview" replace />} />
+          <Route path="ats" element={<Navigate to="/student/analysis?tab=ats" replace />} />
+          <Route path="jdmatch" element={<Navigate to="/student/analysis?tab=jdmatch" replace />} />
+          <Route path="enhancement" element={<Navigate to="/student/analysis?tab=enhancement" replace />} />
+        </Route>
 
-      {/* ═══ HR Portal — Protected ═══ */}
-      <Route path="/hr" element={
-        <ProtectedRoute requiredRole="hr">
-          <Layout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<HrDashboard />} />
-        <Route path="jobs" element={<HrJobs />} />
-        <Route path="candidates" element={<HrCandidates />} />
-        <Route path="screening" element={<HrScreening />} />
-        <Route path="interviews" element={<HrInterviews />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="analytics" element={<HrAnalytics />} />
-        <Route path="reports" element={<HrReports />} />
-        <Route path="company" element={<HrCompany />} />
-        <Route path="notifications" element={<StudentNotifications />} />
-        <Route path="settings" element={<HrSettings />} />
-      </Route>
+        {/* ═══ HR Portal — Protected ═══ */}
+        <Route path="/hr" element={
+          <ProtectedRoute requiredRole="hr">
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<HrDashboard />} />
+          <Route path="jobs" element={<HrJobs />} />
+          <Route path="candidates" element={<HrCandidates />} />
+          <Route path="screening" element={<HrScreening />} />
+          <Route path="interviews" element={<HrInterviews />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="analytics" element={<HrAnalytics />} />
+          <Route path="reports" element={<HrReports />} />
+          <Route path="company" element={<HrCompany />} />
+          <Route path="notifications" element={<StudentNotifications />} />
+          <Route path="settings" element={<HrSettings />} />
+        </Route>
 
-      {/* ═══ Admin Portal — Protected (separate login) ═══ */}
-      <Route path="/admin" element={
-        <ProtectedRoute requiredRole="admin">
-          <Layout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<AdminDashboard />} />
-        <Route path="users" element={<AdminUsers />} />
-        <Route path="content" element={<AdminContentAudit />} />
-        <Route path="analytics" element={<AdminAnalytics />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="notifications" element={<StudentNotifications />} />
-      </Route>
+        {/* ═══ Admin Portal — Protected (separate login) ═══ */}
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="content" element={<AdminContentAudit />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="notifications" element={<StudentNotifications />} />
+        </Route>
 
-      {/* ═══ Default Redirects ═══ */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+        {/* ═══ Default Redirects ═══ */}
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Suspense>
   );
 }
