@@ -2,104 +2,62 @@ import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import {
-  LayoutDashboard, FilePlus, Upload, BarChart, Sparkles,
-  SearchCode, MessageSquare, Briefcase, BookOpen, Bell,
-  User, Settings, BriefcaseIcon, Users, Eye, Calendar,
-  LineChart, ClipboardList, Building, GraduationCap,
+  LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
+  BookOpen, User, Settings, Users, Calendar, LineChart, Building,
+  GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose }) {
   const { user } = useAuthStore();
   const role = user?.role || 'student';
   const isHr = role === 'hr';
+  const isAdmin = role === 'admin';
 
-  const studentGroups = [
-    {
-      title: 'Overview',
-      items: [
-        { name: 'Dashboard', to: '/student', icon: LayoutDashboard },
-      ],
-    },
-    {
-      title: 'Resume Studio',
-      items: [
-        { name: 'Resume Guide',   to: '/student/guide',        icon: GraduationCap },
-        { name: 'Resume Builder', to: '/student/builder',      icon: FilePlus },
-        { name: 'Resume Upload',  to: '/student/upload',       icon: Upload },
-      ],
-    },
-    {
-      title: 'AI Intelligence',
-      items: [
-        { name: 'ATS Analysis',   to: '/student/ats',          icon: BarChart },
-        { name: 'AI Enhancement', to: '/student/enhancement',  icon: Sparkles },
-        { name: 'JD Match',       to: '/student/jdmatch',      icon: SearchCode },
-      ],
-    },
-    {
-      title: 'Career & Prep',
-      items: [
-        { name: 'AI Interview',   to: '/student/interview',    icon: MessageSquare },
-        { name: 'Applications',   to: '/student/applications', icon: Briefcase },
-        { name: 'Resources',      to: '/student/resources',    icon: BookOpen },
-      ],
-    },
-    {
-      title: 'Account',
-      items: [
-        { name: 'Notifications',  to: '/student/notifications',icon: Bell },
-        { name: 'Profile',        to: '/student/profile',      icon: User },
-        { name: 'Settings',       to: '/student/settings',     icon: Settings },
-      ],
-    },
+  const studentNav = [
+    { name: 'Dashboard',         to: '/student',              icon: LayoutDashboard },
+    { name: 'Resume Guide',      to: '/student/guide',        icon: GraduationCap },
+    { name: 'Resume Builder',    to: '/student/builder',      icon: FilePlus },
+    { name: 'Resume Analysis',   to: '/student/analysis',     icon: Sparkles },
+    { name: 'Applications',      to: '/student/applications', icon: Briefcase },
+    { name: 'Messages',          to: '/student/messages',     icon: MessageSquare },
+    { name: 'AI Interview',      to: '/student/interview',    icon: BookOpen },
+    { name: 'Profile & Settings',to: '/student/profile',      icon: User },
   ];
 
-  const hrGroups = [
-    {
-      title: 'Overview',
-      items: [
-        { name: 'Dashboard', to: '/hr', icon: LayoutDashboard },
-      ],
-    },
-    {
-      title: 'Talent Acquisition',
-      items: [
-        { name: 'Jobs',       to: '/hr/jobs',       icon: BriefcaseIcon },
-        { name: 'Candidates', to: '/hr/candidates', icon: Users },
-        { name: 'Screening',  to: '/hr/screening',  icon: Eye },
-        { name: 'Interviews', to: '/hr/interviews', icon: Calendar },
-      ],
-    },
-    {
-      title: 'Insights & Org',
-      items: [
-        { name: 'Analytics',  to: '/hr/analytics',  icon: LineChart },
-        { name: 'Reports',    to: '/hr/reports',    icon: ClipboardList },
-        { name: 'Company',    to: '/hr/company',    icon: Building },
-      ],
-    },
-    {
-      title: 'Account',
-      items: [
-        { name: 'Notifications', to: '/hr/notifications', icon: Bell },
-        { name: 'Settings',      to: '/hr/settings',     icon: Settings },
-      ],
-    },
+  const hrNav = [
+    { name: 'Dashboard',          to: '/hr',             icon: LayoutDashboard },
+    { name: 'Job Postings',       to: '/hr/jobs',        icon: Briefcase },
+    { name: 'Candidate Pipeline', to: '/hr/candidates',  icon: Users },
+    { name: 'Interviews',         to: '/hr/interviews',  icon: Calendar },
+    { name: 'Messages',           to: '/hr/messages',    icon: MessageSquare },
+    { name: 'Analytics & Reports',to: '/hr/analytics',   icon: LineChart },
+    { name: 'Company & Settings', to: '/hr/company',     icon: Building },
   ];
 
-  const groups = isHr ? hrGroups : studentGroups;
+  const adminNav = [
+    { name: 'Dashboard',          to: '/admin',          icon: LayoutDashboard },
+    { name: 'User Management',    to: '/admin/users',    icon: Users },
+    { name: 'Content & Job Audit',to: '/admin/content',  icon: FileCheck },
+    { name: 'Platform Analytics', to: '/admin/analytics',icon: LineChart },
+    { name: 'System Settings',    to: '/admin/settings', icon: Sliders },
+  ];
 
-  const accentColor  = isHr ? '#0d9488'                        : '#3b82f6';
-  const accentBg     = isHr ? 'rgba(13,148,136,0.13)'          : 'rgba(59,130,246,0.13)';
-  const accentBorder = isHr ? '#0d9488'                        : '#3b82f6';
-  const logoGrad     = isHr ? 'linear-gradient(135deg,#0d9488,#10b981)' : 'linear-gradient(135deg,#3b82f6,#6366f1)';
-  const logoGlow     = isHr ? '0 4px 18px rgba(13,148,136,0.45)'       : '0 4px 18px rgba(59,130,246,0.45)';
+  const nav = isAdmin ? adminNav : isHr ? hrNav : studentNav;
+
+  const accentColor  = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#3b82f6';
+  const accentBg     = isAdmin ? 'rgba(139,92,246,0.13)' : isHr ? 'rgba(13,148,136,0.13)' : 'rgba(59,130,246,0.13)';
+  const accentBorder = isAdmin ? '#8b5cf6' : isHr ? '#0d9488' : '#3b82f6';
+  const logoGrad     = isAdmin ? 'linear-gradient(135deg,#8b5cf6,#ec4899)' : isHr ? 'linear-gradient(135deg,#0d9488,#10b981)' : 'linear-gradient(135deg,#3b82f6,#6366f1)';
+  const logoGlow     = isAdmin ? '0 4px 18px rgba(139,92,246,0.45)' : isHr ? '0 4px 18px rgba(13,148,136,0.45)' : '0 4px 18px rgba(59,130,246,0.45)';
+
+  const homePath = isAdmin ? '/admin' : isHr ? '/hr' : '/student';
+  const portalTitle = isAdmin ? 'Admin Console' : isHr ? 'HR Recruiter' : 'Student Portal';
 
   const inner = (
     <aside className="glass-sidebar flex flex-col h-full w-[240px]">
       {/* ── Logo ── */}
       <Link
-        to={isHr ? '/hr' : '/student'}
+        to={homePath}
         className="flex items-center gap-3 px-4 py-5 border-b shrink-0"
         style={{ borderColor: 'var(--border-faint)' }}
         onClick={onMobileClose}
@@ -108,64 +66,60 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
           className="h-8 w-8 min-w-[32px] rounded-xl flex items-center justify-center text-white font-bold text-sm"
           style={{ background: logoGrad, boxShadow: logoGlow }}
         >
-          A
+          {isAdmin ? '🛡️' : 'A'}
         </div>
         <span className="sidebar-logo-text font-bold text-sm font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
           Antigravity AI
         </span>
       </Link>
 
-      {/* ── Grouped Nav ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-3">
-        {groups.map((grp, gIdx) => (
-          <div key={grp.title || gIdx} className="space-y-0.5">
-            <p
-              className="sidebar-section-label text-[9px] uppercase font-bold tracking-widest px-3 pt-1 text-ellipsis overflow-hidden"
-              style={{ color: 'var(--text-faint)' }}
-            >
-              {grp.title}
-            </p>
+      {/* ── Nav ── */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4 space-y-1">
+        <p
+          className="sidebar-section-label text-[10px] uppercase font-bold tracking-widest px-3 mb-2"
+          style={{ color: 'var(--text-faint)' }}
+        >
+          {portalTitle}
+        </p>
 
-            {grp.items.map(({ name, to, icon: Icon }) => (
-              <NavLink
-                key={name}
-                to={to}
-                end={to === '/student' || to === '/hr'}
-                onClick={onMobileClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium
-                   transition-all duration-200 min-w-max
-                   ${isActive ? 'font-semibold' : ''}`
-                }
-                style={({ isActive }) =>
-                  isActive
-                    ? {
-                        background: accentBg,
-                        color: accentColor,
-                        borderLeft: `2px solid ${accentBorder}`,
-                        paddingLeft: '10px',
-                        boxShadow: `0 0 0 1px ${accentBg}, inset 0 1px 0 rgba(255,255,255,0.06)`,
-                      }
-                    : { color: 'var(--text-muted)' }
-                }
-                onMouseEnter={e => {
-                  if (!e.currentTarget.getAttribute('aria-current')) {
-                    e.currentTarget.style.background = 'var(--nav-hover-bg)';
-                    e.currentTarget.style.color = 'var(--nav-hover-text)';
+        {nav.map(({ name, to, icon: Icon }) => (
+          <NavLink
+            key={name}
+            to={to}
+            end={to === '/student' || to === '/hr' || to === '/admin'}
+            onClick={onMobileClose}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium
+               transition-all duration-200 min-w-max
+               ${isActive ? 'font-semibold' : ''}`
+            }
+            style={({ isActive }) =>
+              isActive
+                ? {
+                    background: accentBg,
+                    color: accentColor,
+                    borderLeft: `2px solid ${accentBorder}`,
+                    paddingLeft: '10px',
+                    boxShadow: `0 0 0 1px ${accentBg}, inset 0 1px 0 rgba(255,255,255,0.06)`,
                   }
-                }}
-                onMouseLeave={e => {
-                  if (!e.currentTarget.getAttribute('aria-current')) {
-                    e.currentTarget.style.background = '';
-                    e.currentTarget.style.color = 'var(--text-muted)';
-                  }
-                }}
-              >
-                <Icon className="h-[17px] w-[17px] shrink-0" />
-                <span className="sidebar-label">{name}</span>
-              </NavLink>
-            ))}
-          </div>
+                : { color: 'var(--text-muted)' }
+            }
+            onMouseEnter={e => {
+              if (!e.currentTarget.getAttribute('aria-current')) {
+                e.currentTarget.style.background = 'var(--nav-hover-bg)';
+                e.currentTarget.style.color = 'var(--nav-hover-text)';
+              }
+            }}
+            onMouseLeave={e => {
+              if (!e.currentTarget.getAttribute('aria-current')) {
+                e.currentTarget.style.background = '';
+                e.currentTarget.style.color = 'var(--text-muted)';
+              }
+            }}
+          >
+            <Icon className="h-[18px] w-[18px] shrink-0" />
+            <span className="sidebar-label">{name}</span>
+          </NavLink>
         ))}
       </nav>
 
@@ -194,12 +148,10 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
   return (
     <>
-      {/* ── Desktop: hover-expand wrapper ── */}
       <div className="sidebar-wrapper hidden lg:block relative z-20">
         {inner}
       </div>
 
-      {/* ── Mobile: slide-in panel ── */}
       <div
         className={`
           lg:hidden fixed top-0 left-0 bottom-0 z-50

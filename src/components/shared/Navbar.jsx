@@ -2,11 +2,11 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
-import { Menu, Bell, Search, LogOut, ChevronDown, User, Settings, Sun, Moon } from 'lucide-react';
+import { Menu, Bell, Search, LogOut, ChevronDown, User, Settings, Sun, Moon, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Navbar({ onMobileMenuToggle }) {
-  const { user, logout } = useAuthStore();
+  const { user, logout, switchRole } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
 
@@ -17,7 +17,6 @@ export default function Navbar({ onMobileMenuToggle }) {
 
   const isDark = theme === 'dark';
 
-  /* hover helpers with small delay so menus don't flicker on diagonal moves */
   const hover = (setter, timerRef) => ({
     onMouseEnter: () => { clearTimeout(timerRef.current); setter(true);  },
     onMouseLeave: () => { timerRef.current = setTimeout(() => setter(false), 180); },
@@ -29,12 +28,17 @@ export default function Navbar({ onMobileMenuToggle }) {
     navigate('/login');
   };
 
+  const handleRoleChange = (role, path) => {
+    switchRole(role);
+    navigate(path);
+    toast.success(`Switched to ${role.toUpperCase()} Portal`);
+  };
+
   return (
     <header className="glass-navbar sticky top-0 z-30 h-16 w-full flex items-center justify-between px-5 shrink-0">
 
       {/* ── Left: mobile hamburger + search ── */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        {/* Mobile menu button */}
         <button
           onClick={onMobileMenuToggle}
           className="lg:hidden p-2 rounded-xl glass transition-colors cursor-pointer"
@@ -44,7 +48,6 @@ export default function Navbar({ onMobileMenuToggle }) {
           <Menu className="h-5 w-5" />
         </button>
 
-        {/* Search bar */}
         <div className="relative max-w-sm w-full hidden sm:block">
           <Search
             className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5"
@@ -61,6 +64,27 @@ export default function Navbar({ onMobileMenuToggle }) {
 
       {/* ── Right: actions ── */}
       <div className="flex items-center gap-2.5 shrink-0">
+
+        {/* ── Portal Role Switcher Pill ── */}
+        <div className="glass p-1 rounded-xl hidden sm:flex items-center gap-1 text-[11px] font-bold">
+          {[
+            { id: 'student', label: '🎓 Student', path: '/student' },
+            { id: 'hr',      label: '🏢 HR',      path: '/hr' },
+            { id: 'admin',   label: '🛡️ Admin',   path: '/admin' },
+          ].map(r => (
+            <button
+              key={r.id}
+              onClick={() => handleRoleChange(r.id, r.path)}
+              className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                user?.role === r.id
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]'
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
 
         {/* ── Theme toggle ── */}
         <button
@@ -94,7 +118,6 @@ export default function Navbar({ onMobileMenuToggle }) {
               className="glass-dropdown absolute right-0 top-full mt-2 w-80 z-50 overflow-hidden"
               {...hover(setShowNotif, notifTimer)}
             >
-              {/* Header */}
               <div
                 className="flex items-center justify-between px-4 py-3 border-b"
                 style={{ borderColor: 'var(--border-faint)' }}
@@ -103,12 +126,11 @@ export default function Navbar({ onMobileMenuToggle }) {
                 <button className="text-[10px] text-brand-blue hover:underline font-medium">Mark all read</button>
               </div>
 
-              {/* Items */}
               <div className="p-2 max-h-72 overflow-y-auto space-y-0.5">
                 {[
                   { title: 'AI Resume Analysis Complete', body: 'Your resume scored 84% — view suggestions.',   dot: '#3b82f6' },
-                  { title: 'New Campaign Launched',       body: 'Vercel opened a Senior React Developer role.', dot: '#10b981' },
-                  { title: 'Interview Reminder',          body: 'Mock session starts in 30 minutes.',           dot: '#8b5cf6' },
+                  { title: 'New Recruiter Message',       body: 'Marcus Vance from Stripe sent you a message.', dot: '#10b981' },
+                  { title: 'Mock Interview Ready',        body: 'Practice your tailored technical round.',      dot: '#8b5cf6' },
                 ].map((n, i) => (
                   <NotifItem key={i} {...n} />
                 ))}
@@ -140,30 +162,39 @@ export default function Navbar({ onMobileMenuToggle }) {
 
           {showUserMenu && (
             <div
-              className="glass-dropdown absolute right-0 top-full mt-2 w-54 z-50 overflow-hidden"
+              className="glass-dropdown absolute right-0 top-full mt-2 w-56 z-50 overflow-hidden"
               {...hover(setShowUserMenu, userTimer)}
             >
-              {/* User info */}
               <div
                 className="px-4 py-3 border-b"
                 style={{ borderColor: 'var(--border-faint)', background: 'var(--nav-hover-bg)' }}
               >
                 <p className="text-xs font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user?.name}</p>
                 <p className="text-[10px] mt-0.5 capitalize truncate" style={{ color: 'var(--text-muted)' }}>
-                  {user?.role} · {user?.email}
+                  {user?.role} Portal · {user?.email}
                 </p>
+              </div>
+
+              {/* Mobile Role Switching */}
+              <div className="sm:hidden p-2 border-b" style={{ borderColor: 'var(--border-faint)' }}>
+                <p className="text-[9px] uppercase font-bold text-gray-400 mb-1">Switch Portal</p>
+                <div className="grid grid-cols-3 gap-1">
+                  <button onClick={() => { setShowUserMenu(false); handleRoleChange('student', '/student'); }} className="p-1 text-[10px] glass rounded text-center">Student</button>
+                  <button onClick={() => { setShowUserMenu(false); handleRoleChange('hr', '/hr'); }} className="p-1 text-[10px] glass rounded text-center">HR</button>
+                  <button onClick={() => { setShowUserMenu(false); handleRoleChange('admin', '/admin'); }} className="p-1 text-[10px] glass rounded text-center">Admin</button>
+                </div>
               </div>
 
               <div className="p-1.5 space-y-0.5">
                 <MenuBtn
                   icon={<User className="h-4 w-4 text-brand-blue" />}
-                  label="My Profile"
-                  onClick={() => { setShowUserMenu(false); navigate(user?.role === 'hr' ? '/hr/settings' : '/student/profile'); }}
+                  label="Profile"
+                  onClick={() => { setShowUserMenu(false); navigate(user?.role === 'admin' ? '/admin/settings' : user?.role === 'hr' ? '/hr/company' : '/student/profile'); }}
                 />
                 <MenuBtn
                   icon={<Settings className="h-4 w-4 text-brand-indigo" />}
                   label="Settings"
-                  onClick={() => { setShowUserMenu(false); navigate(user?.role === 'hr' ? '/hr/settings' : '/student/settings'); }}
+                  onClick={() => { setShowUserMenu(false); navigate(user?.role === 'admin' ? '/admin/settings' : user?.role === 'hr' ? '/hr/settings' : '/student/settings'); }}
                 />
                 <div className="my-1 border-t" style={{ borderColor: 'var(--border-faint)' }} />
                 <MenuBtn
@@ -181,7 +212,6 @@ export default function Navbar({ onMobileMenuToggle }) {
   );
 }
 
-/* ── Small helpers ────────────────────────────────────────────── */
 function NotifItem({ title, body, dot }) {
   const [hovered, setHovered] = useState(false);
   return (
