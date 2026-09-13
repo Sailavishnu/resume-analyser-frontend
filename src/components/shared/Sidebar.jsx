@@ -4,7 +4,8 @@ import { useAuthStore } from '../../store/authStore';
 import {
   LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
   BookOpen, User, Settings, Users, Calendar, LineChart, Building,
-  GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity
+  GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity,
+  Compass, Award
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
@@ -18,6 +19,8 @@ export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSideb
     { name: 'Resume Guide',      to: '/student/guide',        icon: GraduationCap },
     { name: 'Resume Builder',    to: '/student/builder',      icon: FilePlus },
     { name: 'Resume Analysis',   to: '/student/analysis',     icon: Sparkles },
+    { name: 'Career Roadmap',    to: '/student/roadmap',      icon: Compass },
+    { name: 'Skill Assessments', to: '/student/assessments',  icon: Award },
     { name: 'Applications',      to: '/student/applications', icon: Briefcase },
     { name: 'Messages',          to: '/student/messages',     icon: MessageSquare },
     { name: 'AI Interview',      to: '/student/interview',    icon: BookOpen },

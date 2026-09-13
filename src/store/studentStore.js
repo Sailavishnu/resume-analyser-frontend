@@ -4,9 +4,18 @@ const MOCK_RESUMES = [
   {
     id: 'res-1',
     name: 'Priya_Lakshmi_CV_2026.pdf',
+    version: 'v2.1',
     uploadDate: '2026-07-20T10:30:00Z',
     score: 84,
+    atsScore: 88,
     role: 'Fullstack Software Engineer',
+    dimensions: [
+      { label: 'ATS Compatibility', score: 88, status: 'Strong' },
+      { label: 'Skills Alignment', score: 82, status: 'Good' },
+      { label: 'Experience Impact', score: 78, status: 'Needs Work' },
+      { label: 'Project Depth', score: 90, status: 'Strong' },
+      { label: 'Formatting', score: 94, status: 'Excellent' }
+    ],
     analysis: {
       overallScore: 84,
       sectionScores: {
@@ -16,28 +25,28 @@ const MOCK_RESUMES = [
         formatting: 78
       },
       keywords: {
-        matched: ['React', 'JavaScript', 'Node.js', 'SQL', 'REST APIs', 'Git', 'Agile'],
+        matched: ['React', 'JavaScript', 'Node.js', 'SQL', 'REST APIs', 'Git', 'Agile', 'Zustand', 'TailwindCSS'],
         missing: ['TypeScript', 'Docker', 'AWS (S3/EC2)', 'GraphQL', 'CI/CD'],
         suggestions: ['Kubernetes', 'Redis', 'Unit Testing (Jest/RTL)']
       },
       formattingCheck: [
         { id: 'f1', check: 'Font size consistency', passed: true, detail: 'Fonts are legible and appropriately scaled between headers and body.' },
-        { id: 'f2', check: 'Margins & Spacing', passed: false, detail: 'The right margin on page 2 is slightly narrow (0.5"). Standardize to 0.75" or 1".' },
+        { id: 'f2', check: 'Margins & Spacing', passed: false, detail: 'Standardized 0.75" single-column ATS margins.' },
         { id: 'f3', check: 'Action Verbs usage', passed: true, detail: 'Strong verbs like "Designed", "Led", "Optimized" are used frequently.' },
         { id: 'f4', check: 'Contact Information', passed: true, detail: 'Email, Phone, and LinkedIn links are correctly placed.' },
-        { id: 'f5', check: 'Length (Pages)', passed: false, detail: 'The resume contains significant empty space on page 2. Condense to a tight 1-page layout.' }
+        { id: 'f5', check: 'Length (Pages)', passed: true, detail: 'Clean 1-page compact layout.' }
       ],
       bulletsBreakdown: [
         {
           id: 'b1',
-          section: 'Experience (Tesla)',
-          original: 'Responsible for building dashboard components for internal service teams.',
+          section: 'Experience (Zoho Projects)',
+          original: 'Responsible for building dashboard components for service teams.',
           improved: 'Architected and deployed 12+ reusable React dashboards, reducing loading speeds by 40% and increasing service team throughput by 15%.',
           impact: 'Adds quantifiable metrics and action-oriented results instead of a passive list of tasks.'
         },
         {
           id: 'b2',
-          section: 'Experience (Tesla)',
+          section: 'Projects (SaaS Platform)',
           original: 'Worked on fixing bugs and writing SQL queries for the databases.',
           improved: 'Optimized 30+ legacy SQL queries and resolved 150+ critical React/Node.js bugs, leading to a 25% boost in system reliability.',
           impact: 'Specifies the scale of bug fixing and queries optimized, showcasing problem-solving capability.'
@@ -46,7 +55,7 @@ const MOCK_RESUMES = [
           id: 'b3',
           section: 'Summary',
           original: 'Hardworking developer with expertise in React looking for a role.',
-          improved: 'Results-driven Fullstack Developer with 2+ years of experience designing and shipping scalable React/Node.js web applications in agile environments.',
+          improved: 'Results-driven Fullstack Developer with expertise in designing and shipping scalable React/Node.js web applications in agile environments.',
           impact: 'Highlights experience levels and target frameworks in a professional summary tone.'
         }
       ]
@@ -55,9 +64,18 @@ const MOCK_RESUMES = [
   {
     id: 'res-2',
     name: 'Priya_Lakshmi_Backend_CV.pdf',
+    version: 'v1.0',
     uploadDate: '2026-07-24T18:15:00Z',
     score: 68,
+    atsScore: 72,
     role: 'Backend Developer',
+    dimensions: [
+      { label: 'ATS Compatibility', score: 72, status: 'Needs Work' },
+      { label: 'Skills Alignment', score: 68, status: 'Fair' },
+      { label: 'Experience Impact', score: 65, status: 'Needs Work' },
+      { label: 'Project Depth', score: 75, status: 'Good' },
+      { label: 'Formatting', score: 80, status: 'Good' }
+    ],
     analysis: {
       overallScore: 68,
       sectionScores: {
@@ -95,81 +113,197 @@ const MOCK_JOBS = [
   {
     id: 'job-1',
     title: 'Senior React Developer',
-    company: 'Vercel',
+    company: 'Zoho Corporation',
     logo: 'https://images.unsplash.com/photo-1618401471353-b98aedd07871?w=100&auto=format&fit=crop&q=80',
-    location: 'Remote, US',
-    salary: '$140k - $170k',
-    matchRate: 92,
-    skillsRequired: ['React', 'TypeScript', 'Next.js', 'Tailwind CSS', 'Vite', 'Git'],
-    skillsMatched: ['React', 'JavaScript', 'Tailwind CSS', 'Git'],
-    skillsMissing: ['TypeScript', 'Next.js'],
+    location: 'Chennai, India (Hybrid)',
+    salary: '₹14,00,000 - ₹20,00,000',
+    matchRate: 94,
+    skillsRequired: ['React', 'JavaScript', 'TypeScript', 'Zustand/Redux', 'Tailwind CSS', 'Git'],
+    skillsMatched: ['React', 'JavaScript', 'Tailwind CSS', 'Git', 'Zustand/Redux'],
+    skillsMissing: ['TypeScript'],
     gapAnalysis: {
-      technicalGaps: 'Your resume shows strong React experience, but lacks exposure to modern Next.js server actions and TypeScript definitions.',
+      technicalGaps: 'Your resume shows strong React experience, but lacks TypeScript types and generics.',
       recommendations: [
-        { title: 'Learn Next.js App Router', source: 'Next.js Official Docs', duration: '2 weeks' },
-        { title: 'TypeScript for React Developers', source: 'Total TypeScript', duration: '1 week' }
+        { title: 'TypeScript for React Developers', source: 'Total TypeScript', duration: '1 week', priority: 'High' },
+        { title: 'Docker Containerization', source: 'Docker Hub', duration: '3 days', priority: 'Medium' }
       ]
     }
   },
   {
     id: 'job-2',
     title: 'Fullstack Engineer',
-    company: 'Stripe',
+    company: 'Freshworks',
     logo: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=100&auto=format&fit=crop&q=80',
-    location: 'San Francisco, CA (Hybrid)',
-    salary: '$150k - $190k',
-    matchRate: 85,
+    location: 'Chennai, India (On-site)',
+    salary: '₹12,00,000 - ₹17,00,000',
+    matchRate: 88,
     skillsRequired: ['React', 'Node.js', 'PostgreSQL', 'Docker', 'REST APIs', 'AWS'],
     skillsMatched: ['React', 'JavaScript', 'Node.js', 'SQL', 'REST APIs'],
     skillsMissing: ['Docker', 'AWS', 'PostgreSQL'],
     gapAnalysis: {
       technicalGaps: 'Good database foundation but lacks cloud deployments (AWS) and containerization configurations (Docker).',
       recommendations: [
-        { title: 'Docker for Beginners', source: 'Docker Hub Academy', duration: '5 hours' },
-        { title: 'AWS Cloud Practitioner Essentials', source: 'Coursera / AWS', duration: '12 hours' }
+        { title: 'Docker for Beginners', source: 'Docker Hub Academy', duration: '5 hours', priority: 'Medium' },
+        { title: 'AWS Cloud Practitioner Essentials', source: 'Coursera / AWS', duration: '12 hours', priority: 'Low' }
       ]
     }
   },
   {
     id: 'job-3',
-    title: 'Frontend Engineer - UI Platform',
-    company: 'Linear',
+    title: 'Frontend UI/UX Specialist',
+    company: 'Chargebee',
     logo: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=100&auto=format&fit=crop&q=80',
-    location: 'Remote, Global',
-    salary: '$130k - $160k',
-    matchRate: 78,
-    skillsRequired: ['React', 'TypeScript', 'Framer Motion', 'Tailwind CSS', 'GraphQL', 'Jest'],
-    skillsMatched: ['React', 'Tailwind CSS', 'Git'],
-    skillsMissing: ['TypeScript', 'Framer Motion', 'GraphQL', 'Jest'],
+    location: 'Bangalore / Remote',
+    salary: '₹13,00,000 - ₹18,00,000',
+    matchRate: 91,
+    skillsRequired: ['React', 'TypeScript', 'Framer Motion', 'Tailwind CSS', 'Jest'],
+    skillsMatched: ['React', 'Tailwind CSS', 'Framer Motion'],
+    skillsMissing: ['TypeScript', 'Jest'],
     gapAnalysis: {
-      technicalGaps: 'Linear places extreme emphasis on smooth fluid interactions. Adding Framer Motion work and Jest unit tests is critical.',
+      technicalGaps: 'Chargebee places heavy emphasis on fluid interactions and unit test coverage.',
       recommendations: [
-        { title: 'Framer Motion Complete Guide', source: 'Frontend Masters', duration: '8 hours' },
-        { title: 'Unit Testing React Apps with Jest', source: 'TestingJavaScript.com', duration: '10 hours' }
+        { title: 'Unit Testing React Apps with Jest', source: 'TestingJavaScript.com', duration: '10 hours', priority: 'Medium' }
       ]
     }
   }
 ];
 
-const MOCK_INTERVIEWS = [
+const MOCK_APPLICATIONS = [
   {
-    id: 'int-1',
-    role: 'Frontend Engineer',
-    company: 'Vercel Mock',
-    date: '2026-07-22',
-    score: 88,
-    feedback: 'Excellent explanation of React render loops and rendering optimization. Needs minor focus on security (XSS prevention).'
+    id: 'app-1',
+    jobId: 'job-1',
+    company: 'Zoho Corporation',
+    role: 'Senior React Developer',
+    salary: '₹14,00,000 - ₹20,00,000',
+    location: 'Chennai (Hybrid)',
+    status: 'Shortlisted',
+    appliedDate: '10 Sep 2026',
+    matchRate: 94,
+    resumeUsed: 'Priya_Lakshmi_CV_2026.pdf',
+    notes: 'Karthik Kumar (Recruiter) scheduled technical discussion for Thursday 3 PM.',
+    timeline: [
+      { date: '10 Sep 2026', title: 'Application Submitted', desc: 'Applied with Primary Resume (94% match score).' },
+      { date: '11 Sep 2026', title: 'ATS Automated Screening Passed', desc: 'ATS compatibility verified at 94% index.' },
+      { date: '12 Sep 2026', title: 'Recruiter Shortlisted', desc: 'Shortlisted by Karthik Kumar for technical interview.' }
+    ]
+  },
+  {
+    id: 'app-2',
+    jobId: 'job-2',
+    company: 'Freshworks',
+    role: 'Fullstack Engineer',
+    salary: '₹12,00,000 - ₹17,00,000',
+    location: 'Chennai (On-site)',
+    status: 'Under Review',
+    appliedDate: '11 Sep 2026',
+    matchRate: 88,
+    resumeUsed: 'Priya_Lakshmi_CV_2026.pdf',
+    notes: 'Awaiting round 1 candidate screening review.',
+    timeline: [
+      { date: '11 Sep 2026', title: 'Application Submitted', desc: 'Applied through campus placement portal.' }
+    ]
   }
+];
+
+const MOCK_ROADMAP = {
+  roleId: 'frontend',
+  roleName: 'Frontend Engineer',
+  completionPercentage: 68,
+  phases: [
+    {
+      id: 'p1',
+      title: 'Phase 1: Web Fundamentals',
+      status: 'completed',
+      skills: [
+        { id: 's1', name: 'HTML5 Semantic Markup', completed: true },
+        { id: 's2', name: 'CSS Flexbox & CSS Grid', completed: true },
+        { id: 's3', name: 'JavaScript Async / ES6+', completed: true }
+      ]
+    },
+    {
+      id: 'p2',
+      title: 'Phase 2: Modern Frontend Architecture',
+      status: 'in_progress',
+      skills: [
+        { id: 's4', name: 'React 18 & Custom Hooks', completed: true },
+        { id: 's5', name: 'Zustand & Client State', completed: true },
+        { id: 's6', name: 'TypeScript & Type Safety', completed: false, isGap: true, priority: 'High', source: 'JD Match' }
+      ]
+    },
+    {
+      id: 'p3',
+      title: 'Phase 3: Production Engineering & Styling',
+      status: 'in_progress',
+      skills: [
+        { id: 's7', name: 'TailwindCSS Design System', completed: true },
+        { id: 's8', name: 'Framer Motion Animations', completed: true },
+        { id: 's9', name: 'Docker Containerization', completed: false, isGap: true, priority: 'Medium', source: 'JD Match' }
+      ]
+    },
+    {
+      id: 'p4',
+      title: 'Phase 4: Capstone Projects & Portfolio',
+      status: 'not_started',
+      skills: [
+        { id: 's10', name: 'Production SaaS App with Auth', completed: true },
+        { id: 's11', name: 'Performance Optimization & Core Web Vitals', completed: false }
+      ]
+    },
+    {
+      id: 'p5',
+      title: 'Phase 5: Technical Interviews & Preparation',
+      status: 'in_progress',
+      skills: [
+        { id: 's12', name: 'DSA in JavaScript', completed: true },
+        { id: 's13', name: 'AI Mock Interview Practice', completed: true },
+        { id: 's14', name: 'Behavioral STAR Framework', completed: false }
+      ]
+    }
+  ]
+};
+
+const MOCK_ASSESSMENTS = [
+  { id: 'asm-js', skill: 'JavaScript Core & ES6+', category: 'Frontend', questionsCount: 10, durationMin: 12, level: 'Intermediate', bestScore: 84 },
+  { id: 'asm-react', skill: 'React 18 & State Management', category: 'Frontend', questionsCount: 10, durationMin: 15, level: 'Advanced', bestScore: 91 },
+  { id: 'asm-sql', skill: 'SQL & Relational Databases', category: 'Database', questionsCount: 10, durationMin: 12, level: 'Intermediate', bestScore: 78 },
+  { id: 'asm-python', skill: 'Python & Backend APIs', category: 'Backend', questionsCount: 10, durationMin: 15, level: 'Intermediate', bestScore: null }
 ];
 
 export const useStudentStore = create((set, get) => ({
   resumes: MOCK_RESUMES,
   selectedResumeId: 'res-1',
   jobs: MOCK_JOBS,
-  interviews: MOCK_INTERVIEWS,
+  applications: MOCK_APPLICATIONS,
+  roadmap: MOCK_ROADMAP,
+  assessments: MOCK_ASSESSMENTS,
+  interviews: [
+    {
+      id: 'int-1',
+      role: 'Senior React Developer',
+      company: 'Zoho Corporation',
+      date: '2026-09-17 (Thursday 3:00 PM)',
+      score: 88,
+      status: 'Scheduled',
+      feedback: 'Technical interview scheduled with Karthik Kumar. Focus: React performance & Zustand state.'
+    }
+  ],
+
+  // Platform Metrics
+  targetRole: 'Frontend Engineer',
+  streak: 7,
+  careerReadiness: 76,
+  readinessBreakdown: {
+    resume: 84,
+    ats: 88,
+    skills: 71,
+    projects: 76,
+    assessments: 79,
+    interview: 81,
+    applications: 68,
+    profile: 94
+  },
+
   analyzing: false,
-  
-  // Active Interview Session
   activeInterview: null,
 
   setSelectedResumeId: (id) => set({ selectedResumeId: id }),
@@ -179,33 +313,140 @@ export const useStudentStore = create((set, get) => ({
     return resumes.find(r => r.id === selectedResumeId) || resumes[0] || null;
   },
 
+  setTargetRole: (role) => {
+    set({ targetRole: role });
+  },
+
+  // Apply to a job with cross-feature state sync
+  applyToJob: (jobId, resumeName = 'Priya_Lakshmi_CV_2026.pdf') => {
+    const job = get().jobs.find(j => j.id === jobId);
+    if (!job) return;
+
+    const newApplication = {
+      id: 'app-' + Date.now(),
+      jobId,
+      company: job.company,
+      role: job.title,
+      salary: job.salary,
+      location: job.location,
+      status: 'Applied',
+      appliedDate: 'Just now',
+      matchRate: job.matchRate || 90,
+      resumeUsed: resumeName,
+      notes: 'Applied via Placement Portal. Awaiting initial recruiter screening.',
+      timeline: [
+        { date: 'Just now', title: 'Application Submitted', desc: `Applied using ${resumeName} with ${job.matchRate}% match.` }
+      ]
+    };
+
+    set(state => ({
+      applications: [newApplication, ...state.applications.filter(a => a.jobId !== jobId)],
+      streak: state.streak + 1,
+      careerReadiness: Math.min(100, state.careerReadiness + 1)
+    }));
+  },
+
+  // Add missing skill from JD Match to Career Roadmap
+  addSkillToRoadmap: (skillName, priority = 'High') => {
+    set(state => {
+      const currentPhases = [...state.roadmap.phases];
+      const targetPhase = currentPhases[1]; // Phase 2
+      const exists = targetPhase.skills.some(s => s.name.toLowerCase() === skillName.toLowerCase());
+      if (exists) return state;
+
+      const newSkill = {
+        id: 's-gap-' + Date.now(),
+        name: skillName,
+        completed: false,
+        isGap: true,
+        priority,
+        source: 'JD Match Gap'
+      };
+
+      targetPhase.skills.push(newSkill);
+      return {
+        roadmap: {
+          ...state.roadmap,
+          phases: currentPhases
+        }
+      };
+    });
+  },
+
+  // Toggle Roadmap Skill Status & Sync Career Readiness
+  toggleRoadmapSkill: (phaseId, skillId) => {
+    set(state => {
+      const updatedPhases = state.roadmap.phases.map(phase => {
+        if (phase.id !== phaseId) return phase;
+        const updatedSkills = phase.skills.map(s => {
+          if (s.id === skillId) return { ...s, completed: !s.completed };
+          return s;
+        });
+        return { ...phase, skills: updatedSkills };
+      });
+
+      const allSkills = updatedPhases.flatMap(p => p.skills);
+      const completed = allSkills.filter(s => s.completed).length;
+      const completionPercentage = Math.round((completed / allSkills.length) * 100);
+
+      return {
+        roadmap: {
+          ...state.roadmap,
+          phases: updatedPhases,
+          completionPercentage
+        },
+        careerReadiness: Math.min(100, Math.max(70, 70 + Math.round(completionPercentage * 0.25)))
+      };
+    });
+  },
+
+  // Complete an assessment & update skill profile + readiness
+  completeAssessment: (assessmentId, score) => {
+    set(state => {
+      const updatedAssessments = state.assessments.map(asm => {
+        if (asm.id !== assessmentId) return asm;
+        return { ...asm, bestScore: Math.max(asm.bestScore || 0, score) };
+      });
+
+      return {
+        assessments: updatedAssessments,
+        streak: state.streak + 1,
+        careerReadiness: Math.min(100, state.careerReadiness + 2)
+      };
+    });
+  },
+
   analyzeUploadedResume: async (fileName) => {
     set({ analyzing: true });
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     const newResume = {
       id: `res-${Math.random().toString(36).substr(2, 9)}`,
       name: fileName,
+      version: 'v1.0',
       uploadDate: new Date().toISOString(),
-      score: 75,
-      role: 'Software Developer',
+      score: 78,
+      atsScore: 82,
+      role: 'Software Engineer',
+      dimensions: [
+        { label: 'ATS Compatibility', score: 82, status: 'Strong' },
+        { label: 'Skills Alignment', score: 75, status: 'Good' },
+        { label: 'Experience Impact', score: 74, status: 'Good' },
+        { label: 'Project Depth', score: 85, status: 'Strong' },
+        { label: 'Formatting', score: 88, status: 'Strong' }
+      ],
       analysis: {
-        overallScore: 75,
-        sectionScores: {
-          skills: 70,
-          experience: 75,
-          education: 85,
-          formatting: 70
-        },
+        overallScore: 78,
+        sectionScores: { skills: 75, experience: 74, education: 88, formatting: 82 },
         keywords: {
-          matched: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git'],
-          missing: ['Node.js', 'SQL', 'TypeScript', 'Tailwind CSS'],
-          suggestions: ['Redux', 'Unit Testing', 'Webpack']
+          matched: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'REST APIs'],
+          missing: ['TypeScript', 'Docker', 'PostgreSQL'],
+          suggestions: ['Redux', 'Unit Testing', 'TailwindCSS']
         },
         formattingCheck: [
           { id: 'f1', check: 'Font size consistency', passed: true, detail: 'Clear, legible font hierarchy.' },
           { id: 'f2', check: 'Margins & Spacing', passed: true, detail: 'Standard margins used.' },
-          { id: 'f3', check: 'Action Verbs usage', passed: false, detail: 'Too many passive statements (e.g. "Participated in", "Learnt about").' }
+          { id: 'f3', check: 'Action Verbs usage', passed: true, detail: 'Good use of action verbs.' }
         ],
         bulletsBreakdown: [
           {
@@ -222,7 +463,8 @@ export const useStudentStore = create((set, get) => ({
     set(state => ({
       resumes: [newResume, ...state.resumes],
       selectedResumeId: newResume.id,
-      analyzing: false
+      analyzing: false,
+      careerReadiness: Math.min(100, state.careerReadiness + 3)
     }));
     return newResume;
   },
@@ -240,11 +482,12 @@ export const useStudentStore = create((set, get) => ({
         });
 
         const oldOverall = resume.analysis.overallScore;
-        const newOverall = Math.min(100, oldOverall + 2);
+        const newOverall = Math.min(100, oldOverall + 3);
 
         return {
           ...resume,
           score: newOverall,
+          atsScore: Math.min(100, resume.atsScore + 2),
           analysis: {
             ...resume.analysis,
             overallScore: newOverall,
@@ -253,7 +496,10 @@ export const useStudentStore = create((set, get) => ({
         };
       });
 
-      return { resumes: updatedResumes };
+      return {
+        resumes: updatedResumes,
+        careerReadiness: Math.min(100, state.careerReadiness + 1)
+      };
     });
   },
 
@@ -262,18 +508,21 @@ export const useStudentStore = create((set, get) => ({
     const questions = [
       {
         id: 'q1',
-        question: `Based on your resume, you worked at Tesla on React dashboards. How did you design those dashboards for performance and heavy data loads?`,
-        suggestedKws: ['virtualization', 'memoization', 'caching', 'useMemo', 'lazy loading']
+        category: 'Project Architecture',
+        question: `Based on your resume, you built dashboard systems using React and Node.js. How did you optimize those components for heavy data re-renders?`,
+        suggestedKws: ['virtualization', 'memoization', 'caching', 'useMemo', 'lazy loading', 'zustand']
       },
       {
         id: 'q2',
-        question: `Your resume lists Node.js. Can you explain how Node.js handles asynchronous operations and how you utilized the Event Loop?`,
+        category: 'Technical Core',
+        question: `Your profile mentions asynchronous APIs and REST services. Can you explain how Node.js handles asynchronous events under the hood?`,
         suggestedKws: ['event loop', 'callback queue', 'non-blocking', 'libuv', 'promises']
       },
       {
         id: 'q3',
-        question: `You list Docker as a missing skill on Vercel's requirements. How do you plan to handle containerization in a collaborative cloud deployment?`,
-        suggestedKws: ['dockerfile', 'images', 'containers', 'volumes', 'microservices']
+        category: 'Problem Solving & Gaps',
+        question: `You list Docker as a learning gap for fullstack deployments. How do you plan to containerize your applications for production clusters?`,
+        suggestedKws: ['dockerfile', 'images', 'containers', 'volumes', 'compose', 'microservices']
       }
     ];
 
@@ -299,16 +548,17 @@ export const useStudentStore = create((set, get) => ({
     const keywordsFound = currentQuestion.suggestedKws.filter(kw => 
       answerText.toLowerCase().includes(kw.toLowerCase())
     );
-    const score = Math.min(100, Math.max(50, 50 + (keywordsFound.length * 15) + (answerText.length > 50 ? 10 : 0)));
+    const score = Math.min(100, Math.max(55, 55 + (keywordsFound.length * 12) + (answerText.length > 50 ? 10 : 0)));
 
     const newAnswer = {
       questionId: currentQuestion.id,
+      category: currentQuestion.category,
       question: currentQuestion.question,
       answer: answerText,
       score,
       feedback: keywordsFound.length > 0 
-        ? `Good. You accurately highlighted key concepts: ${keywordsFound.join(', ')}.`
-        : `Your response was basic. Try referencing terms like: ${currentQuestion.suggestedKws.slice(0, 3).join(', ')}.`
+        ? `Strong. You highlighted key technical concepts: ${keywordsFound.join(', ')}.`
+        : `Your response was conceptual. Reference specific architectural terms like: ${currentQuestion.suggestedKws.slice(0, 3).join(', ')}.`
     };
 
     const updatedAnswers = [...activeInterview.answers, newAnswer];
@@ -322,7 +572,8 @@ export const useStudentStore = create((set, get) => ({
         company: 'AI Recruitment Evaluator',
         date: new Date().toISOString().split('T')[0],
         score: totalScore,
-        feedback: `Completed with an overall score of ${totalScore}%. Strong conceptual grasp in frontend dashboard optimizations. Target deeper research on backend scaling and infrastructure concepts.`
+        status: 'Completed',
+        feedback: `Completed with an overall score of ${totalScore}%. Strong grasp of React client state and architectural boundaries. Recommended next: deepen containerization and deployment fundamentals.`
       };
 
       set(state => ({
@@ -332,7 +583,9 @@ export const useStudentStore = create((set, get) => ({
           completed: true,
           feedback: interviewSummary.feedback
         },
-        interviews: [interviewSummary, ...state.interviews]
+        interviews: [interviewSummary, ...state.interviews],
+        streak: state.streak + 1,
+        careerReadiness: Math.min(100, state.careerReadiness + 2)
       }));
     } else {
       set({
