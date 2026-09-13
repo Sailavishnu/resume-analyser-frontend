@@ -10,6 +10,7 @@ import SignUp from '../pages/auth/SignUp';
 
 // Student Portal Pages
 import StudentDashboard from '../pages/student/Dashboard';
+import ResumeGuide from '../pages/student/ResumeGuide';
 import ResumeBuilder from '../pages/student/Builder';
 import ResumeUpload from '../pages/student/Upload';
 import AtsAnalysis from '../pages/student/Ats';
@@ -43,6 +44,7 @@ export default function AppRoutes() {
       {/* Student Portal Protected Routes */}
       <Route path="/student" element={<Layout />}>
         <Route index element={<StudentDashboard />} />
+        <Route path="guide" element={<ResumeGuide />} />
         <Route path="builder" element={<ResumeBuilder />} />
         <Route path="upload" element={<ResumeUpload />} />
         <Route path="ats" element={<AtsAnalysis />} />

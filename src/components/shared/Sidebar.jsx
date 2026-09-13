@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FilePlus, Upload, BarChart, Sparkles,
   SearchCode, MessageSquare, Briefcase, BookOpen, Bell,
   User, Settings, BriefcaseIcon, Users, Eye, Calendar,
-  LineChart, ClipboardList, Building,
+  LineChart, ClipboardList, Building, GraduationCap,
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose }) {
@@ -15,6 +15,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
 
   const studentNav = [
     { name: 'Dashboard',          to: '/student',              icon: LayoutDashboard },
+    { name: 'Resume Guide',       to: '/student/guide',        icon: GraduationCap },
     { name: 'Resume Builder',     to: '/student/builder',      icon: FilePlus },
     { name: 'Resume Upload',      to: '/student/upload',       icon: Upload },
     { name: 'ATS Analysis',       to: '/student/ats',          icon: BarChart },

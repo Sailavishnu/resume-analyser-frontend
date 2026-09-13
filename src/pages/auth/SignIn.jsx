@@ -67,7 +67,7 @@ export default function SignIn() {
             A
           </div>
           <span className="font-bold text-lg tracking-tight font-heading" style={{ color: 'var(--text-primary)' }}>
-            Antigravity AI
+            AI Resume Analysis and Recruitment System
           </span>
         </div>
 
