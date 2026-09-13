@@ -16,6 +16,7 @@ const AdminLogin = lazy(() => import('../pages/auth/AdminLogin'));
 const StudentDashboard    = lazy(() => import('../pages/student/Dashboard'));
 const ResumeGuide         = lazy(() => import('../pages/student/ResumeGuide'));
 const ResumeBuilder       = lazy(() => import('../pages/student/Builder'));
+const ResumeVault         = lazy(() => import('../pages/student/Vault'));
 const ResumeAnalysis      = lazy(() => import('../pages/student/Analysis'));
 const StudentRoadmap      = lazy(() => import('../pages/student/Roadmap'));
 const StudentAssessments  = lazy(() => import('../pages/student/Assessments'));
@@ -85,6 +86,7 @@ export default function AppRoutes() {
           <Route index element={<StudentDashboard />} />
           <Route path="guide" element={<ResumeGuide />} />
           <Route path="builder" element={<ResumeBuilder />} />
+          <Route path="resumes" element={<ResumeVault />} />
           <Route path="analysis" element={<ResumeAnalysis />} />
           <Route path="roadmap" element={<StudentRoadmap />} />
           <Route path="assessments" element={<StudentAssessments />} />
@@ -96,8 +98,9 @@ export default function AppRoutes() {
           <Route path="profile" element={<StudentProfile />} />
           <Route path="settings" element={<StudentSettings />} />
 
-          {/* Legacy deep links → unified analysis engine */}
-          <Route path="upload" element={<Navigate to="/student/analysis?tab=overview" replace />} />
+          {/* Legacy deep links */}
+          <Route path="upload" element={<Navigate to="/student/resumes" replace />} />
+          <Route path="compare" element={<Navigate to="/student/resumes?tab=compare" replace />} />
           <Route path="ats" element={<Navigate to="/student/analysis?tab=ats" replace />} />
           <Route path="jdmatch" element={<Navigate to="/student/analysis?tab=jdmatch" replace />} />
           <Route path="enhancement" element={<Navigate to="/student/analysis?tab=enhancement" replace />} />
