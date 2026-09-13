@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { RESUME_GUIDE } from '../../data/resumeGuide';
+import { Download, Eye, Sparkles, FileText, CheckCircle2, ArrowRight, ExternalLink, ShieldCheck } from 'lucide-react';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 
 export default function ResumeGuide() {
-  const [activeSection, setActiveSection] = useState('structure');
+  const [activeSection, setActiveSection] = useState('templates');
+  const [previewTemplate, setPreviewTemplate] = useState(null);
 
   const navItems = [
+    { id: 'templates',  label: 'ATS Templates',     icon: '📄', desc: 'Download high-scoring CVs' },
     { id: 'structure',  label: 'Section Structure', icon: '🗂️', desc: 'What to include in each section' },
     { id: 'formatting', label: 'Formatting Rules',  icon: '📐', desc: 'Font, spacing & layout' },
     { id: 'ats',        label: 'ATS Checklist',     icon: '🤖', desc: 'Pass automated screening' },
@@ -21,17 +27,30 @@ export default function ResumeGuide() {
     <div className="space-y-6">
 
       {/* ── Page Header ── */}
-      <div>
-        <h1 className="text-2xl font-bold font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
-          Resume Architecture & Writing Guide
-        </h1>
-        <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Master the rules top candidates use to beat ATS parsers and impress recruiters — section by section.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b" style={{ borderColor: 'var(--border-faint)' }}>
+        <div>
+          <h1 className="text-2xl font-bold font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            Resume Architecture & Writing Guide
+          </h1>
+          <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+            Master the rules top candidates use to beat ATS parsers, impress recruiters, and download vetted CV templates.
+          </p>
+        </div>
+        {activeSection !== 'templates' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveSection('templates')}
+            icon={Download}
+            className="text-xs self-start sm:self-auto"
+          >
+            ATS Templates
+          </Button>
+        )}
       </div>
 
       {/* ── Desktop: Horizontal card nav ── */}
-      <div className="hidden sm:grid sm:grid-cols-4 md:grid-cols-8 gap-2">
+      <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-9 gap-2">
         {navItems.map((n) => {
           const isActive = activeSection === n.id;
           return (
@@ -117,6 +136,7 @@ export default function ResumeGuide() {
 
       {/* ── Active Tab Content ── */}
       <div className="transition-all duration-300">
+        {activeSection === 'templates'  && <TemplatesSection onPreview={setPreviewTemplate} />}
         {activeSection === 'structure'  && <StructureSection />}
         {activeSection === 'formatting' && <FormattingSection />}
         {activeSection === 'ats'        && <ATSSection />}
@@ -126,6 +146,60 @@ export default function ResumeGuide() {
         {activeSection === 'summary'    && <SummaryVsObjectiveSection />}
         {activeSection === 'mistakes'   && <MistakesSection />}
       </div>
+
+      {/* ── PDF Preview Modal ── */}
+      <Modal
+        isOpen={!!previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        title={previewTemplate ? `Preview: ${previewTemplate.title}` : 'Resume Preview'}
+        size="2xl"
+        footerActions={
+          previewTemplate && (
+            <div className="flex items-center justify-between w-full">
+              <span className="text-xs text-gray-400">
+                Format: <span className="text-white font-medium">Standard ATS 1-Page PDF</span>
+              </span>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setPreviewTemplate(null)}>
+                  Close
+                </Button>
+                <a href={previewTemplate.file} download={previewTemplate.downloadName}>
+                  <Button variant="primary" size="sm" icon={Download}>
+                    Download PDF
+                  </Button>
+                </a>
+              </div>
+            </div>
+          )
+        }
+      >
+        {previewTemplate && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-obsidian-900 border border-white/[0.06] text-xs">
+              <div className="flex items-center gap-2 text-gray-300">
+                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                <span>Verified Score: <strong className="text-emerald-400">{previewTemplate.score}% ATS Compatibility</strong></span>
+              </div>
+              <a
+                href={previewTemplate.file}
+                target="_blank"
+                rel="noreferrer"
+                className="text-brand-blue hover:underline flex items-center gap-1 font-semibold"
+              >
+                Open in new tab <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+
+            <div className="h-[62vh] w-full rounded-xl overflow-hidden border border-white/[0.08] bg-obsidian-950">
+              <iframe
+                src={`${previewTemplate.file}#toolbar=0`}
+                className="w-full h-full"
+                title={previewTemplate.title}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
@@ -682,6 +756,163 @@ function MistakesSection() {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+/* ── Download High-Scoring ATS Templates Section ── */
+function TemplatesSection({ onPreview }) {
+  const templates = [
+    {
+      id: 'sde',
+      title: 'Full-Stack & Software Engineer ATS Template',
+      role: 'Tech & Engineering',
+      score: 98,
+      pages: '1 Page',
+      badgeVariant: 'teal',
+      description: 'Engineered for software roles with Google XYZ impact metrics, clean single-column structure, and dedicated technical skills breakdown.',
+      file: '/samples/software_engineer_ats_template.pdf',
+      downloadName: 'Software_Engineer_ATS_Template.pdf',
+      highlights: ['Google XYZ bullet format', 'Zero table/graphic parsing errors', '98% ATS pass score'],
+      tags: ['React / Node', 'Python', 'System Design', 'Cloud / AWS']
+    },
+    {
+      id: 'data',
+      title: 'Data Analyst & Python / SQL ATS Template',
+      role: 'Data & Analytics',
+      score: 96,
+      pages: '1 Page',
+      badgeVariant: 'blue',
+      description: 'Focused on quantitative business impact, data pipeline projects, machine learning deliverables, and statistical analysis tools.',
+      file: '/samples/data_analyst_ats_template.pdf',
+      downloadName: 'Data_Analyst_ATS_Template.pdf',
+      highlights: ['Quantified business KPIs', 'Structured SQL & BI sections', 'Clean chronological order'],
+      tags: ['SQL', 'Python', 'Tableau / PowerBI', 'ETL Pipelines']
+    },
+    {
+      id: 'fresher',
+      title: 'Fresher & Campus Placement ATS Template',
+      role: 'Entry-Level & College',
+      score: 95,
+      pages: '1 Page',
+      badgeVariant: 'violet',
+      description: 'Ideal for undergraduates and college freshers with highlighted capstone projects, coding profiles, hackathons, and foundational coursework.',
+      file: '/samples/fresher_entry_level_template.pdf',
+      downloadName: 'Fresher_Placement_ATS_Template.pdf',
+      highlights: ['Academic & project balance', 'LeetCode/GitHub highlight links', 'Optimized for campus drives'],
+      tags: ['B.Tech / MCA', 'DSA & OOPs', 'Internship Ready', 'Campus Placement']
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Hero Banner for Templates */}
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-500/20 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-transparent p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5 z-10">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 uppercase tracking-wider">
+              Verified ATS Compliant
+            </span>
+            <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5" /> 100% Parser Compatible
+            </span>
+          </div>
+          <h2 className="text-xl font-bold font-heading text-white tracking-tight">
+            Download High-Scoring ATS Templates
+          </h2>
+          <p className="text-xs text-gray-300 max-w-2xl leading-relaxed">
+            Curated and battle-tested single-column resume templates designed to breeze through Workday, Taleo, Greenhouse, and Lever ATS parsers. Preview in-browser or download clean PDF templates directly.
+          </p>
+        </div>
+      </div>
+
+      {/* Grid of 3 Templates */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {templates.map((tpl) => (
+          <div
+            key={tpl.id}
+            className="glass-card flex flex-col justify-between p-5 rounded-2xl border transition-all duration-300 hover:border-indigo-400/50 hover:shadow-lg hover:shadow-indigo-500/10 group"
+            style={{ borderColor: 'var(--border-light)' }}
+          >
+            <div className="space-y-4">
+              {/* Card Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+                  <FileText className="h-6 w-6" />
+                </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-extrabold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                    {tpl.score}% ATS Score
+                  </span>
+                  <p className="text-[10px] text-gray-400 mt-1">{tpl.pages} · Standard PDF</p>
+                </div>
+              </div>
+
+              {/* Title & Role */}
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                  {tpl.role}
+                </span>
+                <h3 className="text-base font-bold text-white font-heading mt-0.5 leading-snug">
+                  {tpl.title}
+                </h3>
+                <p className="text-xs text-gray-400 mt-2 leading-relaxed">
+                  {tpl.description}
+                </p>
+              </div>
+
+              {/* Highlights */}
+              <div className="space-y-1.5 pt-1 border-t border-white/[0.04]">
+                {tpl.highlights.map((h, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-gray-300">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                    <span className="truncate">{h}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5 pt-2">
+                {tpl.tags.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-white/[0.04] text-gray-300 border border-white/[0.06]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2.5 pt-5 mt-5 border-t border-white/[0.06]">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex-1 text-xs"
+                icon={Eye}
+                onClick={() => onPreview(tpl)}
+              >
+                Preview
+              </Button>
+              <a
+                href={tpl.file}
+                download={tpl.downloadName}
+                className="flex-1"
+              >
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="w-full text-xs"
+                  icon={Download}
+                >
+                  Download
+                </Button>
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
