@@ -13,36 +13,81 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
   const role = user?.role || 'student';
   const isHr = role === 'hr';
 
-  const studentNav = [
-    { name: 'Dashboard',          to: '/student',              icon: LayoutDashboard },
-    { name: 'Resume Guide',       to: '/student/guide',        icon: GraduationCap },
-    { name: 'Resume Builder',     to: '/student/builder',      icon: FilePlus },
-    { name: 'Resume Upload',      to: '/student/upload',       icon: Upload },
-    { name: 'ATS Analysis',       to: '/student/ats',          icon: BarChart },
-    { name: 'AI Enhancement',     to: '/student/enhancement',  icon: Sparkles },
-    { name: 'JD Match',           to: '/student/jdmatch',      icon: SearchCode },
-    { name: 'AI Interview',       to: '/student/interview',    icon: MessageSquare },
-    { name: 'Applications',       to: '/student/applications', icon: Briefcase },
-    { name: 'Resources',          to: '/student/resources',    icon: BookOpen },
-    { name: 'Notifications',      to: '/student/notifications',icon: Bell },
-    { name: 'Profile',            to: '/student/profile',      icon: User },
-    { name: 'Settings',           to: '/student/settings',     icon: Settings },
+  const studentGroups = [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Dashboard', to: '/student', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'Resume Studio',
+      items: [
+        { name: 'Resume Guide',   to: '/student/guide',        icon: GraduationCap },
+        { name: 'Resume Builder', to: '/student/builder',      icon: FilePlus },
+        { name: 'Resume Upload',  to: '/student/upload',       icon: Upload },
+      ],
+    },
+    {
+      title: 'AI Intelligence',
+      items: [
+        { name: 'ATS Analysis',   to: '/student/ats',          icon: BarChart },
+        { name: 'AI Enhancement', to: '/student/enhancement',  icon: Sparkles },
+        { name: 'JD Match',       to: '/student/jdmatch',      icon: SearchCode },
+      ],
+    },
+    {
+      title: 'Career & Prep',
+      items: [
+        { name: 'AI Interview',   to: '/student/interview',    icon: MessageSquare },
+        { name: 'Applications',   to: '/student/applications', icon: Briefcase },
+        { name: 'Resources',      to: '/student/resources',    icon: BookOpen },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        { name: 'Notifications',  to: '/student/notifications',icon: Bell },
+        { name: 'Profile',        to: '/student/profile',      icon: User },
+        { name: 'Settings',       to: '/student/settings',     icon: Settings },
+      ],
+    },
   ];
 
-  const hrNav = [
-    { name: 'Dashboard',     to: '/hr',             icon: LayoutDashboard },
-    { name: 'Jobs',          to: '/hr/jobs',         icon: BriefcaseIcon },
-    { name: 'Candidates',    to: '/hr/candidates',   icon: Users },
-    { name: 'Screening',     to: '/hr/screening',    icon: Eye },
-    { name: 'Interviews',    to: '/hr/interviews',   icon: Calendar },
-    { name: 'Analytics',     to: '/hr/analytics',    icon: LineChart },
-    { name: 'Reports',       to: '/hr/reports',      icon: ClipboardList },
-    { name: 'Company',       to: '/hr/company',      icon: Building },
-    { name: 'Notifications', to: '/hr/notifications',icon: Bell },
-    { name: 'Settings',      to: '/hr/settings',     icon: Settings },
+  const hrGroups = [
+    {
+      title: 'Overview',
+      items: [
+        { name: 'Dashboard', to: '/hr', icon: LayoutDashboard },
+      ],
+    },
+    {
+      title: 'Talent Acquisition',
+      items: [
+        { name: 'Jobs',       to: '/hr/jobs',       icon: BriefcaseIcon },
+        { name: 'Candidates', to: '/hr/candidates', icon: Users },
+        { name: 'Screening',  to: '/hr/screening',  icon: Eye },
+        { name: 'Interviews', to: '/hr/interviews', icon: Calendar },
+      ],
+    },
+    {
+      title: 'Insights & Org',
+      items: [
+        { name: 'Analytics',  to: '/hr/analytics',  icon: LineChart },
+        { name: 'Reports',    to: '/hr/reports',    icon: ClipboardList },
+        { name: 'Company',    to: '/hr/company',    icon: Building },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        { name: 'Notifications', to: '/hr/notifications', icon: Bell },
+        { name: 'Settings',      to: '/hr/settings',     icon: Settings },
+      ],
+    },
   ];
 
-  const nav = isHr ? hrNav : studentNav;
+  const groups = isHr ? hrGroups : studentGroups;
 
   const accentColor  = isHr ? '#0d9488'                        : '#3b82f6';
   const accentBg     = isHr ? 'rgba(13,148,136,0.13)'          : 'rgba(59,130,246,0.13)';
@@ -50,14 +95,8 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
   const logoGrad     = isHr ? 'linear-gradient(135deg,#0d9488,#10b981)' : 'linear-gradient(135deg,#3b82f6,#6366f1)';
   const logoGlow     = isHr ? '0 4px 18px rgba(13,148,136,0.45)'       : '0 4px 18px rgba(59,130,246,0.45)';
 
-  /* ────────────────────────────────────────────────────────
-     Inner panel — rendered in both desktop sidebar-wrapper
-     and mobile overlay. We keep one JSX tree.
-  ──────────────────────────────────────────────────────── */
   const inner = (
-    <aside
-      className="glass-sidebar flex flex-col h-full w-[240px]"
-    >
+    <aside className="glass-sidebar flex flex-col h-full w-[240px]">
       {/* ── Logo ── */}
       <Link
         to={isHr ? '/hr' : '/student'}
@@ -71,55 +110,62 @@ export default function Sidebar({ mobileOpen, onMobileClose }) {
         >
           A
         </div>
-        <span className="sidebar-logo-text font-bold text-sm font-heading" style={{ color: 'var(--text-primary)' }}>
+        <span className="sidebar-logo-text font-bold text-sm font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
           Antigravity AI
         </span>
       </Link>
 
-      {/* ── Nav ── */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4 space-y-0.5">
-        <p className="sidebar-section-label text-[10px] uppercase font-bold tracking-widest px-3 mb-2" style={{ color: 'var(--text-faint)' }}>
-          {isHr ? 'HR Operations' : 'Student Portal'}
-        </p>
+      {/* ── Grouped Nav ── */}
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-3">
+        {groups.map((grp, gIdx) => (
+          <div key={grp.title || gIdx} className="space-y-0.5">
+            <p
+              className="sidebar-section-label text-[9px] uppercase font-bold tracking-widest px-3 pt-1 text-ellipsis overflow-hidden"
+              style={{ color: 'var(--text-faint)' }}
+            >
+              {grp.title}
+            </p>
 
-        {nav.map(({ name, to, icon: Icon }) => (
-          <NavLink
-            key={name}
-            to={to}
-            end={to === '/student' || to === '/hr'}
-            onClick={onMobileClose}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium
-               transition-all duration-200 min-w-max
-               ${isActive ? 'font-semibold' : ''}`
-            }
-            style={({ isActive }) =>
-              isActive
-                ? {
-                    background: accentBg,
-                    color: accentColor,
-                    borderLeft: `2px solid ${accentBorder}`,
-                    paddingLeft: '10px',
-                    boxShadow: `0 0 0 1px ${accentBg}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+            {grp.items.map(({ name, to, icon: Icon }) => (
+              <NavLink
+                key={name}
+                to={to}
+                end={to === '/student' || to === '/hr'}
+                onClick={onMobileClose}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium
+                   transition-all duration-200 min-w-max
+                   ${isActive ? 'font-semibold' : ''}`
+                }
+                style={({ isActive }) =>
+                  isActive
+                    ? {
+                        background: accentBg,
+                        color: accentColor,
+                        borderLeft: `2px solid ${accentBorder}`,
+                        paddingLeft: '10px',
+                        boxShadow: `0 0 0 1px ${accentBg}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+                      }
+                    : { color: 'var(--text-muted)' }
+                }
+                onMouseEnter={e => {
+                  if (!e.currentTarget.getAttribute('aria-current')) {
+                    e.currentTarget.style.background = 'var(--nav-hover-bg)';
+                    e.currentTarget.style.color = 'var(--nav-hover-text)';
                   }
-                : { color: 'var(--text-muted)' }
-            }
-            onMouseEnter={e => {
-              if (!e.currentTarget.getAttribute('aria-current')) {
-                e.currentTarget.style.background = 'var(--nav-hover-bg)';
-                e.currentTarget.style.color = 'var(--nav-hover-text)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!e.currentTarget.getAttribute('aria-current')) {
-                e.currentTarget.style.background = '';
-                e.currentTarget.style.color = 'var(--text-muted)';
-              }
-            }}
-          >
-            <Icon className="h-[18px] w-[18px] shrink-0" />
-            <span className="sidebar-label">{name}</span>
-          </NavLink>
+                }}
+                onMouseLeave={e => {
+                  if (!e.currentTarget.getAttribute('aria-current')) {
+                    e.currentTarget.style.background = '';
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                  }
+                }}
+              >
+                <Icon className="h-[17px] w-[17px] shrink-0" />
+                <span className="sidebar-label">{name}</span>
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { RESUME_GUIDE } from '../../data/resumeGuide';
 
 export default function ResumeGuide() {
@@ -22,81 +22,110 @@ export default function ResumeGuide() {
 
       {/* ── Page Header ── */}
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          Resume Guide
+        <h1 className="text-2xl font-bold font-heading tracking-tight" style={{ color: 'var(--text-primary)' }}>
+          Resume Architecture & Writing Guide
         </h1>
-        <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-          Everything you need to build a professional, ATS-friendly resume — section by section.
+        <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+          Master the rules top candidates use to beat ATS parsers and impress recruiters — section by section.
         </p>
       </div>
 
       {/* ── Desktop: Horizontal card nav ── */}
       <div className="hidden sm:grid sm:grid-cols-4 md:grid-cols-8 gap-2">
-        {navItems.map((n) => (
-          <button key={n.id} onClick={() => setActiveSection(n.id)}
-            className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all text-center
-              ${activeSection === n.id
-                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 shadow-sm shadow-indigo-500/10'
-                : 'border-[#E2E6F0] dark:border-[#272A38] bg-[#F8F9FF] dark:bg-[#13131f] hover:border-indigo-300 dark:hover:border-indigo-700'
-              }`}>
-            <span className="text-xl">{n.icon}</span>
-            <span className={`text-xs font-semibold leading-tight ${
-              activeSection === n.id
-                ? 'text-indigo-700 dark:text-indigo-300'
-                : 'text-[#07090f] dark:text-[#F0F2FF]'
-            }`}>{n.label}</span>
-            <span className={`text-[10px] leading-tight ${
-              activeSection === n.id ? 'text-indigo-500 dark:text-indigo-400' : 'text-[#8890A8]'
-            }`}>{n.desc}</span>
-          </button>
-        ))}
+        {navItems.map((n) => {
+          const isActive = activeSection === n.id;
+          return (
+            <button
+              key={n.id}
+              onClick={() => setActiveSection(n.id)}
+              className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all duration-200 text-center cursor-pointer ${
+                isActive
+                  ? 'border-indigo-500 bg-indigo-500/10 shadow-sm shadow-indigo-500/20'
+                  : 'border-[var(--border-light)] bg-[var(--bg-surface)] hover:border-indigo-400 hover:bg-[var(--bg-elevated)]'
+              }`}
+            >
+              <span className="text-xl">{n.icon}</span>
+              <span
+                className={`text-xs font-semibold leading-tight ${
+                  isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-[var(--text-primary)]'
+                }`}
+              >
+                {n.label}
+              </span>
+              <span
+                className={`text-[10px] leading-tight ${
+                  isActive ? 'text-indigo-500/80 dark:text-indigo-300/80' : 'text-[var(--text-muted)]'
+                }`}
+              >
+                {n.desc}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Mobile: sticky scrollable pills */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 sm:hidden -mx-1 px-1"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => setActiveSection(n.id)}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all flex-shrink-0 whitespace-nowrap ${
-              activeSection === n.id
-                ? 'bg-indigo-500 text-white shadow-sm'
-                : 'bg-[#F0F2FF] dark:bg-[#1a1a2e] text-[#3d4468] dark:text-[#8890A8] hover:bg-indigo-100 dark:hover:bg-indigo-900/20'
-            }`}>
-            <span>{n.icon}</span>
-            {n.label}
-          </button>
-        ))}
+      <div
+        className="flex gap-1.5 overflow-x-auto pb-1 sm:hidden -mx-1 px-1"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {navItems.map(n => {
+          const isActive = activeSection === n.id;
+          return (
+            <button
+              key={n.id}
+              onClick={() => setActiveSection(n.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all flex-shrink-0 whitespace-nowrap cursor-pointer ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-[var(--bg-surface)] border border-[var(--border-light)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
+              }`}
+            >
+              <span>{n.icon}</span>
+              {n.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Prev/Next navigation */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <button
           onClick={() => currentIdx > 0 && setActiveSection(navItems[currentIdx - 1].id)}
           disabled={currentIdx === 0}
-          className="flex items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/></svg>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+          </svg>
           {currentIdx > 0 ? navItems[currentIdx - 1].label : 'Prev'}
         </button>
-        <span className="text-[10px] text-[#8890A8]">{currentIdx + 1} / {navItems.length}</span>
+        <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
+          {currentIdx + 1} of {navItems.length}
+        </span>
         <button
           onClick={() => currentIdx < navItems.length - 1 && setActiveSection(navItems[currentIdx + 1].id)}
           disabled={currentIdx === navItems.length - 1}
-          className="flex items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-indigo-500 hover:text-indigo-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {currentIdx < navItems.length - 1 ? navItems[currentIdx + 1].label : 'Next'}
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
+          </svg>
         </button>
       </div>
 
-      {activeSection === 'structure'  && <StructureSection />}
-      {activeSection === 'formatting' && <FormattingSection />}
-      {activeSection === 'ats'        && <ATSSection />}
-      {activeSection === 'online'     && <OnlinePresenceSection />}
-      {activeSection === 'verbs'      && <VerbsSection />}
-      {activeSection === 'quantify'   && <QuantifySection />}
-      {activeSection === 'summary'    && <SummaryVsObjectiveSection />}
-      {activeSection === 'mistakes'   && <MistakesSection />}
+      {/* ── Active Tab Content ── */}
+      <div className="transition-all duration-300">
+        {activeSection === 'structure'  && <StructureSection />}
+        {activeSection === 'formatting' && <FormattingSection />}
+        {activeSection === 'ats'        && <ATSSection />}
+        {activeSection === 'online'     && <OnlinePresenceSection />}
+        {activeSection === 'verbs'      && <VerbsSection />}
+        {activeSection === 'quantify'   && <QuantifySection />}
+        {activeSection === 'summary'    && <SummaryVsObjectiveSection />}
+        {activeSection === 'mistakes'   && <MistakesSection />}
+      </div>
     </div>
   );
 }
@@ -107,28 +136,32 @@ function StructureSection() {
   const sections = RESUME_GUIDE.sections;
 
   return (
-    <div className="space-y-3">
-      <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-        Every section explained — what to include, dos, don'ts, and a good vs bad example.
+    <div className="space-y-4">
+      <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+        Every resume section explained — mandatory fields, expert dos & don'ts, and real-world good vs bad examples.
       </p>
 
       {/* Order guide */}
-      <div className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-[#F8F9FF] dark:bg-[#13131f] p-4">
-        <div className="text-xs font-semibold uppercase tracking-wide text-[#3d4468] dark:text-[#6b7080] mb-3">Recommended Section Order</div>
+      <div className="glass-card p-4 sm:p-5">
+        <div className="text-xs font-bold uppercase tracking-wider mb-3 text-indigo-500 dark:text-indigo-400">
+          Recommended Section Order
+        </div>
         <div className="flex flex-wrap gap-2 items-center">
           {sections.map((s, i) => (
             <div key={s.id} className="flex items-center gap-2">
-              <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${
-                s.required
-                  ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400'
-                  : 'bg-[#F0F2FF] dark:bg-[#1a1a2e] border-[#E2E6F0] dark:border-[#272A38] text-[#3d4468] dark:text-[#8890A8]'
-              }`}>
+              <span
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border ${
+                  s.required
+                    ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
+                    : 'bg-[var(--bg-elevated)] border-[var(--border-light)] text-[var(--text-secondary)]'
+                }`}
+              >
                 <span>{s.icon}</span>
                 {s.name}
                 {!s.required && <span className="text-[10px] opacity-70">(optional)</span>}
               </span>
               {i < sections.length - 1 && (
-                <svg className="w-3 h-3 text-[#8890A8] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--text-faint)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
                 </svg>
               )}
@@ -138,95 +171,116 @@ function StructureSection() {
       </div>
 
       {/* Section accordions */}
-      {sections.map((s, i) => (
-        <div key={s.id} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] overflow-hidden">
-          <div
-            onClick={() => setOpen(open === i ? null : i)}
-            className="flex items-center justify-between p-4 cursor-pointer
-                       bg-[#F8F9FF] dark:bg-[#13131f] hover:bg-[#F0F2FF] dark:hover:bg-[#1a1a2e] transition-colors">
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{s.icon}</span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-[#07090f] dark:text-[#F0F2FF]">{s.name}</span>
-                  {s.required
-                    ? <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">Required</span>
-                    : <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F0F2FF] dark:bg-[#1a1a2e] text-[#8890A8]">Optional</span>
-                  }
+      <div className="space-y-3">
+        {sections.map((s, i) => (
+          <div key={s.id} className="glass-card overflow-hidden !rounded-2xl border" style={{ borderColor: 'var(--border-light)' }}>
+            <div
+              onClick={() => setOpen(open === i ? null : i)}
+              className="flex items-center justify-between p-4 cursor-pointer transition-colors hover:bg-[var(--bg-elevated)]"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl sm:text-2xl">{s.icon}</span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {s.name}
+                    </span>
+                    {s.required ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400">
+                        Required
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--bg-elevated)] border border-[var(--border-faint)] text-[var(--text-muted)]">
+                        Optional
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                    {s.what}
+                  </div>
                 </div>
-                <div className="text-xs text-[#3d4468] dark:text-[#8890A8] mt-0.5">{s.what}</div>
               </div>
+              <svg
+                className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${open === i ? 'rotate-90' : ''}`}
+                style={{ color: 'var(--text-muted)' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
+              </svg>
             </div>
-            <svg className={`w-4 h-4 text-[#8890A8] flex-shrink-0 transition-transform ${open === i ? 'rotate-90' : ''}`}
-                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-            </svg>
+
+            {open === i && (
+              <div className="border-t p-5 space-y-5" style={{ borderColor: 'var(--border-light)' }}>
+                {/* Why */}
+                {s.why && (
+                  <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 p-3.5">
+                    <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+                      Why this matters
+                    </div>
+                    <p className="text-xs leading-relaxed text-indigo-900/90 dark:text-indigo-200/90">
+                      {s.why}
+                    </p>
+                  </div>
+                )}
+
+                {/* Dos & Donts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5">
+                    <div className="flex items-center gap-1.5 mb-2.5">
+                      <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-bold">✓</span>
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Do</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {s.dos.map((d, di) => (
+                        <div key={di} className="flex items-start gap-2">
+                          <span className="text-emerald-500 text-xs mt-0.5 flex-shrink-0">•</span>
+                          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{d}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-3.5">
+                    <div className="flex items-center gap-1.5 mb-2.5">
+                      <span className="w-5 h-5 rounded-full bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs flex items-center justify-center font-bold">✗</span>
+                      <span className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wide">Don't</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {s.donts.map((d, di) => (
+                        <div key={di} className="flex items-start gap-2">
+                          <span className="text-rose-500 text-xs mt-0.5 flex-shrink-0">•</span>
+                          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{d}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Good vs Bad example */}
+                {s.example && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                      Real-World Comparison
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5">
+                        <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">✓ Strong Example</div>
+                        <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed text-emerald-900/90 dark:text-emerald-200/90">{s.example.good}</pre>
+                      </div>
+                      <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5">
+                        <div className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">✗ Weak / Avoid</div>
+                        <pre className="text-xs whitespace-pre-wrap font-sans leading-relaxed text-rose-900/90 dark:text-rose-200/90">{s.example.bad}</pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-
-          {open === i && (
-            <div className="border-t border-[#E2E6F0] dark:border-[#272A38] p-5 space-y-5">
-
-              {/* Why (if present) */}
-              {s.why && (
-                <div className="rounded-xl border border-indigo-200 dark:border-indigo-800/40 bg-indigo-50 dark:bg-indigo-900/10 p-3">
-                  <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Why this matters</div>
-                  <p className="text-xs text-indigo-800 dark:text-indigo-300 leading-relaxed">{s.why}</p>
-                </div>
-              )}
-
-              {/* Dos & Donts */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center justify-center font-bold">✓</span>
-                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Do</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {s.dos.map((d, di) => (
-                      <div key={di} className="flex items-start gap-2">
-                        <span className="text-emerald-500 text-xs mt-1 flex-shrink-0">•</span>
-                        <p className="text-xs text-[#1e2340] dark:text-[#c8cce0] leading-relaxed">{d}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-1.5 mb-2.5">
-                    <span className="w-5 h-5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs flex items-center justify-center font-bold">✗</span>
-                    <span className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wide">Don't</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {s.donts.map((d, di) => (
-                      <div key={di} className="flex items-start gap-2">
-                        <span className="text-red-500 text-xs mt-1 flex-shrink-0">•</span>
-                        <p className="text-xs text-[#1e2340] dark:text-[#c8cce0] leading-relaxed">{d}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Good vs Bad example */}
-              {s.example && (
-                <div className="space-y-2">
-                  <div className="text-xs font-semibold uppercase tracking-wide text-[#3d4468] dark:text-[#6b7080]">Example</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10 p-3">
-                      <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">✓ Good</div>
-                      <pre className="text-xs text-emerald-800 dark:text-emerald-300 whitespace-pre-wrap font-sans leading-relaxed">{s.example.good}</pre>
-                    </div>
-                    <div className="rounded-xl border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/10 p-3">
-                      <div className="text-xs font-bold text-red-600 dark:text-red-400 mb-2">✗ Bad</div>
-                      <pre className="text-xs text-red-800 dark:text-red-300 whitespace-pre-wrap font-sans leading-relaxed">{s.example.bad}</pre>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -235,15 +289,15 @@ function StructureSection() {
 function FormattingSection() {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-        Formatting rules that affect both human readers and ATS parsers.
+      <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+        Formatting principles that keep your resume clean for hiring managers and fully readable by ATS parsers.
       </p>
       {RESUME_GUIDE.formatting.map((f, i) => (
-        <div key={i} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] p-4 flex gap-4">
-          <span className="text-2xl flex-shrink-0">{f.icon}</span>
+        <div key={i} className="glass-card p-4 sm:p-5 flex gap-4 items-start">
+          <span className="text-2xl flex-shrink-0 p-2 rounded-xl bg-indigo-500/10">{f.icon}</span>
           <div>
-            <div className="text-sm font-semibold text-[#07090f] dark:text-[#F0F2FF] mb-1">{f.rule}</div>
-            <p className="text-sm text-[#3d4468] dark:text-[#8890A8] leading-relaxed">{f.detail}</p>
+            <div className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>{f.rule}</div>
+            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{f.detail}</p>
           </div>
         </div>
       ))}
@@ -260,16 +314,16 @@ function ATSSection() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-          Go through each point and check off what your resume already does.
+        <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+          Audit your resume against ATS criteria before uploading.
         </p>
         <span className={`text-sm font-bold ${doneCount === items.length ? 'text-emerald-500' : 'text-indigo-500'}`}>
-          {doneCount}/{items.length} done
+          {doneCount}/{items.length} completed
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 rounded-full bg-[#E2E6F0] dark:bg-[#272A38] overflow-hidden">
+      <div className="h-2 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-light)] overflow-hidden">
         <div
           className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-300"
           style={{ width: `${(doneCount / items.length) * 100}%` }}
@@ -277,41 +331,45 @@ function ATSSection() {
       </div>
 
       <div className="space-y-2">
-        {items.map((item, i) => (
-          <div
-            key={i}
-            onClick={() => setChecked(prev => ({ ...prev, [i]: !prev[i] }))}
-            className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all ${
-              checked[i]
-                ? 'border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10'
-                : 'border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] hover:border-indigo-300'
-            }`}>
-            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-              checked[i]
-                ? 'bg-emerald-500 border-emerald-500'
-                : 'border-[#C0C8D8] dark:border-[#3d4468]'
-            }`}>
-              {checked[i] && (
-                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
-                </svg>
-              )}
-            </div>
-            <div>
-              <div className={`text-sm font-semibold ${checked[i] ? 'text-emerald-700 dark:text-emerald-300 line-through opacity-75' : 'text-[#07090f] dark:text-[#F0F2FF]'}`}>
-                {item.check}
+        {items.map((item, i) => {
+          const isDone = !!checked[i];
+          return (
+            <div
+              key={i}
+              onClick={() => setChecked(prev => ({ ...prev, [i]: !prev[i] }))}
+              className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-all duration-200 ${
+                isDone
+                  ? 'border-emerald-500/30 bg-emerald-500/10'
+                  : 'glass-card hover:border-indigo-400'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                isDone
+                  ? 'bg-emerald-500 border-emerald-500 text-white'
+                  : 'border-[var(--border-mid)] bg-[var(--bg-elevated)]'
+              }`}>
+                {isDone && (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
+                  </svg>
+                )}
               </div>
-              <p className="text-xs text-[#3d4468] dark:text-[#8890A8] mt-0.5 leading-relaxed">{item.detail}</p>
+              <div>
+                <div className={`text-sm font-semibold ${isDone ? 'text-emerald-600 dark:text-emerald-400 line-through opacity-85' : 'text-[var(--text-primary)]'}`}>
+                  {item.check}
+                </div>
+                <p className="text-xs mt-0.5 leading-relaxed" style={{ color: 'var(--text-muted)' }}>{item.detail}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {doneCount === items.length && (
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-5 text-center">
-          <div className="text-2xl mb-1">🎉</div>
-          <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-            Your resume is ATS-ready! Upload it for a full score.
+        <div className="glass-card !border-emerald-500/40 bg-emerald-500/10 p-5 text-center">
+          <div className="text-3xl mb-1">🎉</div>
+          <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            Your resume complies with all core ATS rules! Upload it to analyze keyword match scores.
           </div>
         </div>
       )}
@@ -319,7 +377,7 @@ function ATSSection() {
   );
 }
 
-/* ── Online Presence (LinkedIn + GitHub) ── */
+/* ── Online Presence ── */
 function OnlinePresenceSection() {
   const { onlinePresence } = RESUME_GUIDE;
   const [activeTab, setActiveTab] = useState('linkedin');
@@ -332,60 +390,65 @@ function OnlinePresenceSection() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-indigo-200 dark:border-indigo-800/40 bg-indigo-50 dark:bg-indigo-900/10 p-4">
-        <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed">{onlinePresence.why}</p>
+      <div className="glass-card !border-indigo-500/30 bg-indigo-500/10 p-4">
+        <p className="text-xs sm:text-sm leading-relaxed text-indigo-900/90 dark:text-indigo-200/90">{onlinePresence.why}</p>
       </div>
 
       {/* Sub-tabs */}
       <div className="flex gap-2">
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => setActiveTab(t.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
-              activeTab === t.id
-                ? 'bg-indigo-500 text-white shadow-sm'
-                : 'bg-[#F0F2FF] dark:bg-[#1a1a2e] text-[#3d4468] dark:text-[#8890A8] hover:bg-indigo-100 dark:hover:bg-indigo-900/20'
-            }`}>
-            {t.label}
-          </button>
-        ))}
+        {tabs.map(t => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-[var(--bg-surface)] border border-[var(--border-light)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)]'
+              }`}
+            >
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* LinkedIn */}
       {activeTab === 'linkedin' && (
         <div className="space-y-3">
           {onlinePresence.linkedin.sections.map((s, i) => (
-            <div key={i} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] p-4 space-y-2">
+            <div key={i} className="glass-card p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#07090f] dark:text-[#F0F2FF]">{s.name}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  s.priority === 'Critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                  s.priority === 'High'     ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-                                              'bg-[#F0F2FF] dark:bg-[#1a1a2e] text-[#8890A8]'
+                  s.priority === 'Critical' ? 'bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400' :
+                  s.priority === 'High'     ? 'bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                                              'bg-[var(--bg-elevated)] border border-[var(--border-light)] text-[var(--text-muted)]'
                 }`}>{s.priority}</span>
               </div>
-              <p className="text-xs text-[#3d4468] dark:text-[#8890A8] leading-relaxed">{s.rule}</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{s.rule}</p>
               {s.goodExample && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                  <div className="rounded-lg border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10 p-2">
-                    <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mb-1">✓ Good</div>
-                    <p className="text-xs text-emerald-800 dark:text-emerald-300">{s.goodExample}</p>
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+                    <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mb-1">✓ Good Example</div>
+                    <p className="text-xs text-emerald-900/90 dark:text-emerald-200/90">{s.goodExample}</p>
                   </div>
-                  <div className="rounded-lg border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/10 p-2">
-                    <div className="text-[10px] font-bold text-red-600 dark:text-red-400 mb-1">✗ Bad</div>
-                    <p className="text-xs text-red-800 dark:text-red-300">{s.badExample}</p>
+                  <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5">
+                    <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 mb-1">✗ Avoid</div>
+                    <p className="text-xs text-rose-900/90 dark:text-rose-200/90">{s.badExample}</p>
                   </div>
                 </div>
               )}
             </div>
           ))}
-          {/* Common LinkedIn mistakes */}
-          <div className="rounded-2xl border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/10 p-4">
-            <div className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">Common LinkedIn Mistakes</div>
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
+            <div className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">Common LinkedIn Mistakes</div>
             <div className="space-y-1.5">
               {onlinePresence.linkedin.mistakes.map((m, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <span className="text-red-500 text-xs mt-0.5 flex-shrink-0">✗</span>
-                  <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">{m}</p>
+                  <span className="text-rose-500 text-xs mt-0.5 flex-shrink-0">✗</span>
+                  <p className="text-xs text-rose-900/90 dark:text-rose-200/90 leading-relaxed">{m}</p>
                 </div>
               ))}
             </div>
@@ -397,26 +460,25 @@ function OnlinePresenceSection() {
       {activeTab === 'github' && (
         <div className="space-y-3">
           {onlinePresence.github.sections.map((s, i) => (
-            <div key={i} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] p-4 space-y-2">
+            <div key={i} className="glass-card p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-[#07090f] dark:text-[#F0F2FF]">{s.name}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{s.name}</span>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  s.priority === 'Critical' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                  s.priority === 'High'     ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-                                              'bg-[#F0F2FF] dark:bg-[#1a1a2e] text-[#8890A8]'
+                  s.priority === 'Critical' ? 'bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400' :
+                  s.priority === 'High'     ? 'bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400' :
+                                              'bg-[var(--bg-elevated)] border border-[var(--border-light)] text-[var(--text-muted)]'
                 }`}>{s.priority}</span>
               </div>
-              <p className="text-xs text-[#3d4468] dark:text-[#8890A8] leading-relaxed">{s.rule}</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{s.rule}</p>
             </div>
           ))}
-          {/* Common GitHub mistakes */}
-          <div className="rounded-2xl border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/10 p-4">
-            <div className="text-xs font-semibold text-red-600 dark:text-red-400 mb-2">Common GitHub Mistakes</div>
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
+            <div className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">Common GitHub Mistakes</div>
             <div className="space-y-1.5">
               {onlinePresence.github.mistakes.map((m, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <span className="text-red-500 text-xs mt-0.5 flex-shrink-0">✗</span>
-                  <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">{m}</p>
+                  <span className="text-rose-500 text-xs mt-0.5 flex-shrink-0">✗</span>
+                  <p className="text-xs text-rose-900/90 dark:text-rose-200/90 leading-relaxed">{m}</p>
                 </div>
               ))}
             </div>
@@ -426,21 +488,21 @@ function OnlinePresenceSection() {
 
       {/* Portfolio */}
       {activeTab === 'portfolio' && (
-        <div className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] p-5 space-y-3">
-          <div className="text-lg">{onlinePresence.portfolio.icon}</div>
-          <h3 className="text-sm font-semibold text-[#07090f] dark:text-[#F0F2FF]">{onlinePresence.portfolio.title}</h3>
+        <div className="glass-card p-5 space-y-3">
+          <div className="text-2xl">{onlinePresence.portfolio.icon}</div>
+          <h3 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{onlinePresence.portfolio.title}</h3>
           <div className="space-y-2">
             <div>
-              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">When:</span>
-              <p className="text-xs text-[#3d4468] dark:text-[#8890A8] leading-relaxed mt-0.5">{onlinePresence.portfolio.when}</p>
+              <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">When to include:</span>
+              <p className="text-xs leading-relaxed mt-0.5" style={{ color: 'var(--text-secondary)' }}>{onlinePresence.portfolio.when}</p>
             </div>
             <div>
-              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">What:</span>
-              <p className="text-xs text-[#3d4468] dark:text-[#8890A8] leading-relaxed mt-0.5">{onlinePresence.portfolio.what}</p>
+              <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400">What to highlight:</span>
+              <p className="text-xs leading-relaxed mt-0.5" style={{ color: 'var(--text-secondary)' }}>{onlinePresence.portfolio.what}</p>
             </div>
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10 p-3">
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">💡 Tip:</span>
-              <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed mt-0.5">{onlinePresence.portfolio.tip}</p>
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">💡 Pro Tip:</span>
+              <p className="text-xs text-emerald-900/90 dark:text-emerald-200/90 leading-relaxed mt-0.5">{onlinePresence.portfolio.tip}</p>
             </div>
           </div>
         </div>
@@ -455,22 +517,13 @@ function VerbsSection() {
   const { actionVerbs } = RESUME_GUIDE;
 
   const groups = [
-    { key: 'built',    label: 'Built / Created',   color: 'indigo' },
-    { key: 'improved', label: 'Improved / Fixed',  color: 'emerald' },
-    { key: 'led',      label: 'Led / Managed',     color: 'amber' },
-    { key: 'designed', label: 'Designed / Planned',color: 'purple' },
-    { key: 'tested',   label: 'Tested / Debugged', color: 'rose' },
-    { key: 'created',  label: 'Created / Launched',color: 'teal' },
+    { key: 'built',    label: 'Built / Created',   badge: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20' },
+    { key: 'improved', label: 'Improved / Fixed',  badge: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20' },
+    { key: 'led',      label: 'Led / Managed',     badge: 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20' },
+    { key: 'designed', label: 'Designed / Planned',badge: 'bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20' },
+    { key: 'tested',   label: 'Tested / Debugged', badge: 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20' },
+    { key: 'created',  label: 'Created / Launched',badge: 'bg-teal-500/10 border-teal-500/30 text-teal-600 dark:text-teal-400 hover:bg-teal-500/20' },
   ];
-
-  const colorMap = {
-    indigo:  'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40',
-    emerald: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40',
-    amber:   'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/40',
-    purple:  'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/40',
-    rose:    'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800/50 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40',
-    teal:    'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-800/50 text-teal-600 dark:text-teal-400 hover:bg-teal-100 dark:hover:bg-teal-900/40',
-  };
 
   const copy = (verb) => {
     navigator.clipboard?.writeText(verb);
@@ -480,18 +533,21 @@ function VerbsSection() {
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-        Every bullet point in your resume should start with one of these. Click to copy.
+      <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+        Start every accomplishment bullet with a high-impact action verb. Click any word to copy to clipboard.
       </p>
       {groups.map(g => (
-        <div key={g.key}>
-          <div className="text-xs font-semibold uppercase tracking-wide text-[#3d4468] dark:text-[#6b7080] mb-2">{g.label}</div>
+        <div key={g.key} className="glass-card p-4">
+          <div className="text-xs font-bold uppercase tracking-wider mb-2.5" style={{ color: 'var(--text-muted)' }}>
+            {g.label}
+          </div>
           <div className="flex flex-wrap gap-2">
             {actionVerbs[g.key]?.map(v => (
               <button
                 key={v}
                 onClick={() => copy(v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${colorMap[g.color]}`}>
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${g.badge}`}
+              >
                 {copied === v ? '✓ Copied' : v}
               </button>
             ))}
@@ -506,29 +562,31 @@ function VerbsSection() {
 function QuantifySection() {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-        The single biggest upgrade you can make to your resume bullets — add a number.
+      <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+        Transform vague duty descriptions into measurable achievements with concrete metrics.
       </p>
       <div className="space-y-3">
         {RESUME_GUIDE.quantifyTips.map((q, i) => (
-          <div key={i} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 bg-red-50 dark:bg-red-900/10 border-b border-red-100 dark:border-red-900/20">
-              <span className="text-xs font-bold text-red-500 flex-shrink-0">✗ Weak</span>
-              <p className="text-sm text-red-700 dark:text-red-300">{q.weak}</p>
+          <div key={i} className="glass-card overflow-hidden !rounded-2xl border" style={{ borderColor: 'var(--border-light)' }}>
+            <div className="flex items-center gap-3 px-4 py-3 bg-rose-500/10 border-b border-rose-500/20">
+              <span className="text-xs font-bold text-rose-600 dark:text-rose-400 flex-shrink-0">✗ Vague Duty</span>
+              <p className="text-xs sm:text-sm text-rose-900/90 dark:text-rose-200/90">{q.weak}</p>
             </div>
-            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/10">
-              <span className="text-xs font-bold text-emerald-500 flex-shrink-0">✓ Strong</span>
-              <p className="text-sm text-emerald-800 dark:text-emerald-300 font-medium">{q.strong}</p>
+            <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/10">
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">✓ Quantified</span>
+              <p className="text-xs sm:text-sm font-medium text-emerald-900/90 dark:text-emerald-200/90">{q.strong}</p>
             </div>
           </div>
         ))}
       </div>
-      <div className="rounded-2xl border border-indigo-200 dark:border-indigo-500/30 bg-indigo-50 dark:bg-[#0d1520] p-4">
-        <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-2">Numbers to look for in your own projects</div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {['Users / signups', 'API requests/day', '% reduction in time', '% reduction in errors', 'Team size', 'Lines of code reduced', 'Features shipped', 'Time saved (hours/week)', 'DB query time (ms)', 'Test coverage %'].map((n, i) => (
-            <div key={i} className="flex items-center gap-1.5 text-xs text-indigo-700 dark:text-indigo-300">
-              <span className="text-indigo-400">→</span> {n}
+      <div className="glass-card !border-indigo-500/30 bg-indigo-500/10 p-5">
+        <div className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-3">
+          Metrics You Can Estimate & Quantify in Academic/Personal Projects
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {['Active users / signups', 'API requests/sec', '% reduction in latency', '% decrease in bug count', 'Team size / sprints', 'Lines of boilerplate removed', 'Features delivered', 'Time saved (hrs/week)', 'DB query time (ms)', 'Unit test coverage %'].map((n, i) => (
+            <div key={i} className="flex items-center gap-1.5 text-xs text-indigo-900/90 dark:text-indigo-200/90">
+              <span className="text-indigo-500">→</span> {n}
             </div>
           ))}
         </div>
@@ -543,60 +601,59 @@ function SummaryVsObjectiveSection() {
 
   return (
     <div className="space-y-4">
-      {/* Verdict */}
-      <div className="rounded-2xl border border-indigo-200 dark:border-indigo-800/40 bg-indigo-50 dark:bg-indigo-900/10 p-4">
-        <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">2026 Verdict</div>
-        <p className="text-sm text-indigo-800 dark:text-indigo-300 leading-relaxed font-medium">{data.verdict2026}</p>
+      <div className="glass-card !border-indigo-500/30 bg-indigo-500/10 p-4">
+        <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1">2026 Industry Consensus</div>
+        <p className="text-xs sm:text-sm leading-relaxed font-medium text-indigo-900/90 dark:text-indigo-200/90">{data.verdict2026}</p>
       </div>
 
-      {/* When to use each */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10 p-4">
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
           <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-2">✓ Use a Summary when:</div>
           <div className="space-y-1.5">
             {data.whenSummary.map((item, i) => (
               <div key={i} className="flex items-start gap-2">
                 <span className="text-emerald-500 text-xs mt-0.5">•</span>
-                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">{item}</p>
+                <p className="text-xs text-emerald-900/90 dark:text-emerald-200/90 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
         </div>
-        <div className="rounded-2xl border border-amber-200 dark:border-amber-800/40 bg-amber-50 dark:bg-amber-900/10 p-4">
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
           <div className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-2">⚠ Use an Objective only when:</div>
           <div className="space-y-1.5">
             {data.whenObjective.map((item, i) => (
               <div key={i} className="flex items-start gap-2">
                 <span className="text-amber-500 text-xs mt-0.5">•</span>
-                <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{item}</p>
+                <p className="text-xs text-amber-900/90 dark:text-amber-200/90 leading-relaxed">{item}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Template */}
-      <div className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-[#F8F9FF] dark:bg-[#13131f] p-4">
-        <div className="text-xs font-semibold text-[#3d4468] dark:text-[#6b7080] mb-2">Summary Template for Freshers</div>
-        <p className="text-sm font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-3">{data.summaryTemplateForFreshers}</p>
+      <div className="glass-card p-4">
+        <div className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-muted)' }}>
+          High-Converting Summary Formula for Freshers & Students
+        </div>
+        <p className="text-xs sm:text-sm font-mono text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 rounded-xl p-3 border border-indigo-500/20 leading-relaxed">
+          {data.summaryTemplateForFreshers}
+        </p>
       </div>
 
-      {/* Strong examples */}
       <div className="space-y-2">
-        <div className="text-xs font-semibold uppercase tracking-wide text-[#3d4468] dark:text-[#6b7080]">Strong Summary Examples</div>
+        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Strong Summary Examples</div>
         {data.examples.strong.map((ex, i) => (
-          <div key={i} className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-900/10 p-3">
-            <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">{ex}</p>
+          <div key={i} className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3.5">
+            <p className="text-xs leading-relaxed text-emerald-900/90 dark:text-emerald-200/90">{ex}</p>
           </div>
         ))}
       </div>
 
-      {/* Weak examples */}
       <div className="space-y-2">
-        <div className="text-xs font-semibold uppercase tracking-wide text-[#3d4468] dark:text-[#6b7080]">Weak Objective Examples (Avoid)</div>
+        <div className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Weak Objective Examples (Avoid)</div>
         {data.examples.weak.map((ex, i) => (
-          <div key={i} className="rounded-xl border border-red-200 dark:border-red-800/40 bg-red-50 dark:bg-red-900/10 p-3">
-            <p className="text-xs text-red-800 dark:text-red-300 leading-relaxed">{ex}</p>
+          <div key={i} className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5">
+            <p className="text-xs leading-relaxed text-rose-900/90 dark:text-rose-200/90">{ex}</p>
           </div>
         ))}
       </div>
@@ -608,20 +665,20 @@ function SummaryVsObjectiveSection() {
 function MistakesSection() {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-[#3d4468] dark:text-[#8890A8]">
-        The most common resume mistakes that get you filtered out — and how to fix them.
+      <p className="text-xs sm:text-sm" style={{ color: 'var(--text-muted)' }}>
+        The most frequent pitfalls that cause resumes to be discarded before human review — and their direct solutions.
       </p>
       {RESUME_GUIDE.commonMistakes.map((m, i) => (
-        <div key={i} className="rounded-2xl border border-[#E2E6F0] dark:border-[#272A38] bg-white dark:bg-[#13131f] p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-black flex items-center justify-center flex-shrink-0">
+        <div key={i} className="glass-card p-4 sm:p-5 space-y-2">
+          <div className="flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-black flex items-center justify-center flex-shrink-0">
               {i + 1}
             </span>
-            <span className="text-sm font-semibold text-red-600 dark:text-red-400">{m.mistake}</span>
+            <span className="text-sm font-semibold text-rose-600 dark:text-rose-400">{m.mistake}</span>
           </div>
           <div className="flex items-start gap-2 pl-8">
             <span className="text-emerald-500 text-xs flex-shrink-0 mt-0.5 font-bold">Fix →</span>
-            <p className="text-sm text-[#1e2340] dark:text-[#c8cce0] leading-relaxed">{m.fix}</p>
+            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{m.fix}</p>
           </div>
         </div>
       ))}
