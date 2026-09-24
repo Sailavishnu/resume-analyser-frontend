@@ -612,17 +612,21 @@ export const useStudentStore = create((set, get) => ({
   },
 
   // AI Interview Simulator Flow (Connected to FastAPI AI/ML Backend)
-  startInterview: async (role) => {
+  startInterview: async (role, domain = null) => {
     const selectedResume = get().getSelectedResume();
     const sessionData = await interviewService.startInterview({
       role: role || 'Software Engineer',
       resumeId: selectedResume ? selectedResume.id : null,
+      domain: domain,
     });
 
     set({
       activeInterview: {
         sessionId: sessionData.session_id || sessionData.interview_id,
         role: sessionData.target_role || role,
+        hasPrimaryResume: sessionData.has_primary_resume,
+        resumeFileName: sessionData.resume_file_name,
+        domain: sessionData.domain,
         currentQuestionIndex: sessionData.current_question_index || 0,
         questions: sessionData.questions || [sessionData.current_question],
         answers: [],

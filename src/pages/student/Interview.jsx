@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../store/studentStore';
-import { MessageSquare, Mic, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle, FileText } from 'lucide-react';
+import { interviewService } from '../../services/interviewService';
+import { MessageSquare, Mic, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle, FileText, AlertTriangle, BookOpen } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Badge from '../../components/ui/Badge';
 import toast from 'react-hot-toast';
 
+const DOMAIN_SUGGESTIONS = [
+  'Fullstack Web Development (React & Node.js)',
+  'Backend Engineering (Python, FastAPI, Django)',
+  'Data Structures & Algorithms',
+  'Database Systems & SQL',
+  'Cloud Computing & DevOps',
+  'Machine Learning & AI Fundamentals',
+  'Operating Systems & Networking',
+  'Mobile App Development',
+  'System Design & Architecture',
+  'Cybersecurity Fundamentals'
+];
+
 export default function Interview() {
   const { resumes, fetchResumes, interviews, activeInterview, startInterview, submitInterviewAnswer, resetInterview } = useStudentStore();
   const [roleInput, setRoleInput] = useState('Fullstack Software Engineer');
+  const [domainInput, setDomainInput] = useState('');
   const [answerInput, setAnswerInput] = useState('');
-  const [timeLeft, setTimeLeft] = useState(120); // 2 minutes per question
+  const [timeLeft, setTimeLeft] = useState(120);
   const [submitting, setSubmitting] = useState(false);
+  const [resumeCheck, setResumeCheck] = useState(null); // null=loading
+  const [showGeneralMode, setShowGeneralMode] = useState(false);
 
   useEffect(() => {
-    if (fetchResumes) {
-      fetchResumes();
-    }
+    if (fetchResumes) fetchResumes();
+    interviewService.checkPrimaryResume().then(data => setResumeCheck(data));
   }, []);
 
   // Timer effect
@@ -27,7 +43,7 @@ export default function Interview() {
       interval = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            handleAnswerSubmit(); // Auto submit on timer runout
+            handleAnswerSubmit();
             return 120;
           }
           return prev - 1;
@@ -39,14 +55,21 @@ export default function Interview() {
     return () => clearInterval(interval);
   }, [activeInterview]);
 
+  const hasPrimary = resumeCheck?.has_primary_resume;
+  const primaryFileName = resumeCheck?.file_name;
+
   const handleStart = () => {
     if (!roleInput.trim()) {
       toast.error('Please enter a target role.');
       return;
     }
-    startInterview(roleInput);
+    const domain = showGeneralMode ? (domainInput.trim() || null) : null;
+    startInterview(roleInput, domain);
     setTimeLeft(120);
-    toast.success(`Mock Interview initialized for ${roleInput}.`);
+    toast.success(showGeneralMode
+      ? `General domain interview started for: ${domain || roleInput}`
+      : `Resume-grounded interview started for ${roleInput}.`
+    );
   };
 
   const handleAnswerSubmit = async () => {
@@ -84,23 +107,87 @@ export default function Interview() {
       </div>
 
       {!activeInterview ? (
-        /* Setup / History view */
+        /* ─── Setup / History view ─── */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Setup console */}
           <Card className="lg:col-span-2 p-6 space-y-4">
             <h3 className="text-sm font-bold text-white font-heading">Start New Interview Session</h3>
-            <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-cyan-400" />
-                <span className="text-gray-300 font-medium">
-                  Primary Resume: <strong className="text-white">{resumes.find(r => r.isPrimary || r.slot === 'primary')?.name || 'Primary Resume'}</strong>
+
+            {/* ── Primary Resume Status Banner ── */}
+            {resumeCheck === null ? (
+              <div className="p-3 bg-white/5 border border-white/10 rounded-xl text-xs text-gray-400 animate-pulse">
+                Checking primary resume status...
+              </div>
+            ) : hasPrimary && !showGeneralMode ? (
+              /* Resume found */
+              <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-cyan-400" />
+                  <span className="text-gray-300 font-medium">
+                    Primary Resume: <strong className="text-white">{primaryFileName || 'Uploaded'}</strong>
+                  </span>
+                </div>
+                <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                  Resume Grounded
                 </span>
               </div>
-              <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
-                Cloud Synced
-              </span>
-            </div>
+            ) : (
+              /* No resume OR general mode chosen */
+              <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-xs text-amber-300 font-semibold">
+                      {hasPrimary ? 'General Domain Mode' : 'No Primary Resume Uploaded'}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                      {hasPrimary
+                        ? 'You chose to practice with general domain questions powered by Gemini AI instead of your resume.'
+                        : 'Upload your primary resume in the Vault for personalized, resume-grounded interview questions. You can still continue with a general domain interview below.'}
+                    </p>
+                  </div>
+                </div>
+                {!showGeneralMode && !hasPrimary && (
+                  <Button variant="secondary" size="sm" onClick={() => setShowGeneralMode(true)} icon={BookOpen} className="w-full">
+                    Continue with General Interview
+                  </Button>
+                )}
+                {hasPrimary && showGeneralMode && (
+                  <Button variant="secondary" size="sm" onClick={() => setShowGeneralMode(false)} icon={FileText} className="w-full">
+                    Switch Back to Resume-Grounded Mode
+                  </Button>
+                )}
+              </div>
+            )}
 
+            {/* ── Domain / Subject Selector (general mode only) ── */}
+            {(showGeneralMode || (!hasPrimary && resumeCheck)) && (
+              <div className="space-y-3">
+                <Input
+                  label="Subject / Domain (optional)"
+                  value={domainInput}
+                  onChange={e => setDomainInput(e.target.value)}
+                  placeholder="e.g. Data Structures & Algorithms, System Design..."
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {DOMAIN_SUGGESTIONS.map(d => (
+                    <button
+                      key={d}
+                      onClick={() => setDomainInput(d)}
+                      className={`text-[10px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        domainInput === d
+                          ? 'bg-brand-purple/20 border-brand-purple/40 text-brand-purple'
+                          : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-300'
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Role Input ── */}
             <div className="flex gap-3 pt-1">
               <Input
                 label="Target Job Position"
@@ -109,11 +196,24 @@ export default function Interview() {
                 placeholder="e.g. Frontend Engineer, Fullstack Architect, Data Scientist"
               />
             </div>
-            
-            <div className="pt-2">
-              <Button variant="primary" onClick={handleStart} icon={Play}>
-                Initialize AI Room from Primary Resume
-              </Button>
+
+            {/* ── Start Button ── */}
+            <div className="pt-2 flex gap-3 items-center">
+              {(hasPrimary && !showGeneralMode) ? (
+                <Button variant="primary" onClick={handleStart} icon={Play}>
+                  Start Resume-Grounded Interview
+                </Button>
+              ) : (showGeneralMode || (!hasPrimary && resumeCheck)) ? (
+                <Button variant="primary" onClick={handleStart} icon={Play}>
+                  Start General Domain Interview
+                </Button>
+              ) : null}
+
+              {hasPrimary && !showGeneralMode && (
+                <button onClick={() => setShowGeneralMode(true)} className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors">
+                  or try general mode
+                </button>
+              )}
             </div>
           </Card>
 
@@ -144,7 +244,7 @@ export default function Interview() {
           </Card>
         </div>
       ) : (
-        /* Active Interview Simulator */
+        /* ─── Active Interview Simulator ─── */
         <div className="max-w-3xl mx-auto space-y-6">
           <Card className="p-6 space-y-6 relative overflow-hidden">
             {/* Header statistics */}
@@ -153,6 +253,11 @@ export default function Interview() {
                 <span className="text-[10px] font-bold text-brand-blue uppercase tracking-wider bg-brand-blue/10 px-2 py-0.5 rounded">
                   {activeInterview.role} Prep Room
                 </span>
+                {activeInterview.domain && (
+                  <span className="ml-2 text-[10px] font-bold text-brand-purple uppercase tracking-wider bg-brand-purple/10 px-2 py-0.5 rounded">
+                    {activeInterview.domain}
+                  </span>
+                )}
                 {!activeInterview.completed && (
                   <p className="text-xs text-gray-400 mt-1">
                     Question {activeInterview.currentQuestionIndex + 1} of {activeInterview.questions.length}
@@ -252,7 +357,7 @@ export default function Interview() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <p className="text-xs font-semibold text-gray-400">Your Technical Response</p>
-                    <span className="text-[10px] text-gray-500">Evaluated locally via Sentence-BERT & spaCy NLP</span>
+                    <span className="text-[10px] text-gray-500">Evaluated via Sentence-BERT &amp; Gemini AI</span>
                   </div>
                   <Input
                     type="textarea"

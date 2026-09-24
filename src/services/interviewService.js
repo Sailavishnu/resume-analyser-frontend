@@ -12,15 +12,31 @@ import apiClient from './apiClient';
 
 export const interviewService = {
   /**
-   * Start a new real AI Interview session tailored to candidate's resume
+   * Check if candidate has uploaded a primary resume
    */
-  startInterview: async ({ role = 'Software Engineer', resumeId = null, studentId = null }) => {
+  checkPrimaryResume: async (studentId = null) => {
+    try {
+      const response = await apiClient.get('/interviews/check-primary-resume', {
+        params: studentId ? { student_id: studentId } : {}
+      });
+      return response.data?.data || response.data;
+    } catch (err) {
+      console.warn('Check primary resume error:', err.message);
+      return { has_primary_resume: false };
+    }
+  },
+
+  /**
+   * Start a new real AI Interview session tailored to candidate's primary resume or chosen domain
+   */
+  startInterview: async ({ role = 'Software Engineer', resumeId = null, studentId = null, domain = null }) => {
     try {
       const response = await apiClient.post('/interviews/start', {
         target_role: role,
         interview_type: 'technical',
         resume_id: resumeId,
         student_id: studentId,
+        domain: domain,
       });
       return response.data?.data || response.data;
     } catch (err) {
