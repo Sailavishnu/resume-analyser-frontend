@@ -482,7 +482,7 @@ export const useStudentStore = create((set, get) => ({
           isPrimary: r.slot === 'primary' || r.is_primary,
           score: r.score || 82,
           atsScore: r.ats_score || 85,
-          downloadUrl: `http://127.0.0.1:8000/api/v1/resumes/${r.id}/download`,
+          downloadUrl: r.cloudinary_url || `http://127.0.0.1:8000/api/v1/resumes/${r.id}/download`,
           analysis: r.analysis || {
             overallScore: r.score || 82,
             sectionScores: { skills: 85, experience: 80, education: 88, formatting: 82 },
@@ -504,7 +504,7 @@ export const useStudentStore = create((set, get) => ({
   analyzeUploadedResume: async (fileOrName, slot = 'primary') => {
     set({ analyzing: true });
     
-    // If real browser File object provided, upload to GridFS & MongoDB
+    // If real browser File object provided, upload to Cloudinary & MongoDB
     if (fileOrName instanceof File) {
       try {
         const uploaded = await resumeService.uploadResume(fileOrName, slot);
@@ -516,7 +516,7 @@ export const useStudentStore = create((set, get) => ({
           isPrimary: (uploaded.slot === 'primary' || slot === 'primary'),
           score: uploaded.score || 82,
           atsScore: uploaded.ats_score || 86,
-          downloadUrl: `http://127.0.0.1:8000/api/v1/resumes/${uploaded.id}/download`,
+          downloadUrl: uploaded.cloudinary_url || `http://127.0.0.1:8000/api/v1/resumes/${uploaded.id}/download`,
           uploadDate: uploaded.created_at || new Date().toISOString(),
           analysis: uploaded.analysis || {
             overallScore: uploaded.score || 82,

@@ -6,7 +6,7 @@ import {
   Layers, Upload, FileText, Star, GitCompare, Trash2, ArrowRight,
   CheckCircle2, AlertCircle, Sparkles, Check, ShieldAlert, Clock,
   SearchCode, Swords, ArrowUpRight, Crown, Shield, TrendingUp,
-  BarChart3, ChevronRight, Copy, ArrowLeftRight, ExternalLink
+  BarChart3, ChevronRight, Copy, ArrowLeftRight, ExternalLink, Download, Eye
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -371,8 +371,22 @@ function ResumeSlotCard({ label, sublabel, resume, accentColor, icon: Icon, onAu
               target="_blank"
               rel="noopener noreferrer"
               className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"
+              title="View resume (read-only)"
             >
-              <ExternalLink className="h-3 w-3" /> View PDF
+              <Eye className="h-3 w-3" /> View
+            </a>
+          )}
+          {resume.downloadUrl && (
+            <a
+              href={resume.downloadUrl.includes('cloudinary.com')
+                ? resume.downloadUrl.replace('/upload/', '/upload/fl_attachment/')
+                : resume.downloadUrl
+              }
+              download
+              className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20"
+              title="Download resume file"
+            >
+              <Download className="h-3 w-3" /> Download
             </a>
           )}
           {onPromote && (

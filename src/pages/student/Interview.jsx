@@ -64,7 +64,7 @@ export default function Interview() {
   };
 
   const handleMicClick = () => {
-    toast.info('Voice Capture: Integration point for Web Speech API / microphone recording streams.', { duration: 4000 });
+    toast.success('Voice Capture: Integration point for Web Speech API / microphone recording streams.', { duration: 4000 });
   };
 
   const formatTime = (seconds) => {

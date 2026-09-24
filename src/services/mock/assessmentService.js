@@ -168,5 +168,25 @@ export const assessmentService = {
       weakTopics: ['Closure Scoping', 'Event Loop Timing'],
       readinessContribution: score >= 80 ? '+2' : '+1'
     };
+  },
+  
+  getQuestionsForSkill(assessmentId) {
+    const asm = sampleAssessments.find(a => a.id === assessmentId);
+    return asm ? asm.questions : [];
+  },
+  
+  evaluateAssessment(assessmentId, answers) {
+    const asm = sampleAssessments.find(a => a.id === assessmentId);
+    if (!asm) return { score: 0, correct: 0 };
+    let correct = 0;
+    asm.questions.forEach(q => {
+      if (answers[q.id] === q.correctIndex) correct++;
+    });
+    return {
+      score: Math.round((correct / asm.questions.length) * 100),
+      correctAnswers: correct,
+      totalQuestions: asm.questions.length,
+      weakTopics: ['Closure Scoping', 'Event Loop Timing']
+    };
   }
 };
