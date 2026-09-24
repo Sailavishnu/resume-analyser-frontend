@@ -20,7 +20,7 @@ export default function SignUp() {
 
   const onSubmit = async (data) => {
     try {
-      const user = await signUp(data.name, data.email, selectedRole);
+      const user = await signUp(data.name, data.email, data.password, selectedRole);
       toast.success(`Account created successfully! Welcome, ${user.name}`);
       if (user.role === 'hr') {
         navigate('/hr');
@@ -28,7 +28,7 @@ export default function SignUp() {
         navigate('/student');
       }
     } catch (err) {
-      toast.error('Registration failed. Please try again.');
+      toast.error(err?.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -147,6 +147,7 @@ export default function SignUp() {
               <Input
                 label="Full Name"
                 id="name"
+                autoComplete="name"
                 placeholder="e.g. Priya Lakshmi"
                 error={errors.name?.message}
                 register={register('name', { required: 'Name is required' })}
@@ -156,6 +157,7 @@ export default function SignUp() {
                 label="Email Address"
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="e.g. priya.lakshmi@gmail.com"
                 error={errors.email?.message}
                 register={register('email', {
@@ -171,13 +173,14 @@ export default function SignUp() {
                 label="Password"
                 id="password"
                 type="password"
+                autoComplete="new-password"
                 placeholder="••••••••"
                 error={errors.password?.message}
                 register={register('password', {
                   required: 'Password is required',
                   minLength: {
-                    value: 6,
-                    message: 'Password must be at least 6 characters',
+                    value: 8,
+                    message: 'Password must be at least 8 characters',
                   },
                 })}
               />

@@ -13,7 +13,7 @@ export default function Upload() {
   const handleFileSelect = async (file) => {
     try {
       toast.loading(`Uploading ${file.name} to AI parser...`, { id: 'upload' });
-      const newResume = await analyzeUploadedResume(file.name);
+      const newResume = await analyzeUploadedResume(file);
       toast.success('Analysis complete! ATS scorecard generated.', { id: 'upload' });
       navigate('/student/ats');
     } catch (err) {

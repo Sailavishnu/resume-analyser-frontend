@@ -3,13 +3,16 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
 import { Toaster } from 'react-hot-toast';
 import { useThemeStore } from './store/themeStore';
+import { useAuthStore } from './store/authStore';
 
 export default function App() {
   const { initTheme, theme } = useThemeStore();
+  const { initAuth } = useAuthStore();
 
   useEffect(() => {
     initTheme();
-  }, [initTheme]);
+    initAuth();
+  }, [initTheme, initAuth]);
 
   return (
     <BrowserRouter>

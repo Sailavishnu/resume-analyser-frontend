@@ -16,16 +16,11 @@ export default function SignIn() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: 'priya.lakshmi@gmail.com',
-      password: 'password123',
-    }
-  });
+  } = useForm();
 
   const onSubmit = async (data) => {
     try {
-      const user = await login(data.email, selectedRole);
+      const user = await login(data.email, data.password, selectedRole);
       toast.success(`Welcome back, ${user.name}!`);
       if (user.role === 'hr') {
         navigate('/hr');
@@ -33,7 +28,7 @@ export default function SignIn() {
         navigate('/student');
       }
     } catch (err) {
-      toast.error('Authentication failed. Please check credentials.');
+      toast.error(err?.message || 'Authentication failed. Please check credentials.');
     }
   };
 
@@ -160,6 +155,7 @@ export default function SignIn() {
                 label="Email Address"
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="e.g. priya.lakshmi@gmail.com"
                 error={errors.email?.message}
                 register={register('email', {
@@ -175,6 +171,7 @@ export default function SignIn() {
                 label="Password"
                 id="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 error={errors.password?.message}
                 register={register('password', {

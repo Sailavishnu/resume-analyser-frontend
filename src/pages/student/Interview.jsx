@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../store/studentStore';
-import { MessageSquare, Mic, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle } from 'lucide-react';
+import { MessageSquare, Mic, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle, FileText } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -8,11 +8,17 @@ import Badge from '../../components/ui/Badge';
 import toast from 'react-hot-toast';
 
 export default function Interview() {
-  const { interviews, activeInterview, startInterview, submitInterviewAnswer, resetInterview } = useStudentStore();
-  const [roleInput, setRoleInput] = useState('Frontend Engineer');
+  const { resumes, fetchResumes, interviews, activeInterview, startInterview, submitInterviewAnswer, resetInterview } = useStudentStore();
+  const [roleInput, setRoleInput] = useState('Fullstack Software Engineer');
   const [answerInput, setAnswerInput] = useState('');
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes per question
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (fetchResumes) {
+      fetchResumes();
+    }
+  }, []);
 
   // Timer effect
   useEffect(() => {
@@ -83,20 +89,30 @@ export default function Interview() {
           {/* Setup console */}
           <Card className="lg:col-span-2 p-6 space-y-4">
             <h3 className="text-sm font-bold text-white font-heading">Start New Interview Session</h3>
-            <p className="text-xs text-gray-400">AI will generate a series of questions checking matching tags and experience credentials in your CV.</p>
-            
-            <div className="flex gap-3 pt-2">
+            <div className="p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-cyan-400" />
+                <span className="text-gray-300 font-medium">
+                  Primary Resume: <strong className="text-white">{resumes.find(r => r.isPrimary || r.slot === 'primary')?.name || 'Primary Resume'}</strong>
+                </span>
+              </div>
+              <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                Cloud Synced
+              </span>
+            </div>
+
+            <div className="flex gap-3 pt-1">
               <Input
                 label="Target Job Position"
                 value={roleInput}
                 onChange={e => setRoleInput(e.target.value)}
-                placeholder="e.g. Frontend Engineer, Node.js Architect"
+                placeholder="e.g. Frontend Engineer, Fullstack Architect, Data Scientist"
               />
             </div>
             
             <div className="pt-2">
               <Button variant="primary" onClick={handleStart} icon={Play}>
-                Initialize AI Room
+                Initialize AI Room from Primary Resume
               </Button>
             </div>
           </Card>
@@ -166,15 +182,30 @@ export default function Interview() {
                 </div>
 
                 {/* Answers breakdown */}
-                <div className="text-left space-y-3.5 pt-4 max-h-[300px] overflow-y-auto pr-1">
+                <div className="text-left space-y-3.5 pt-4 max-h-[340px] overflow-y-auto pr-1">
                   {activeInterview.answers.map((ans, i) => (
                     <div key={i} className="p-3.5 bg-obsidian-950/40 border border-white/[0.04] rounded-xl text-xs space-y-2">
-                      <p className="font-semibold text-white">Q: {ans.question}</p>
-                      <p className="text-gray-400 italic">"My answer: {ans.answer}"</p>
-                      <div className="flex items-center gap-2 pt-1 border-t border-white/[0.03] text-[10px]">
-                        <span className="font-semibold text-brand-blue bg-brand-blue/10 px-1.5 py-0.2 rounded">Score: {ans.score}%</span>
-                        <span className="text-gray-500">•</span>
-                        <span className="text-gray-400">{ans.feedback}</span>
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="font-semibold text-white">Q{i + 1}: {ans.question}</p>
+                        <span className="font-semibold text-brand-blue bg-brand-blue/10 border border-brand-blue/20 px-2 py-0.5 rounded text-[11px] shrink-0">
+                          {ans.score}%
+                        </span>
+                      </div>
+                      <p className="text-gray-400 italic bg-white/[0.01] p-2 rounded border border-white/[0.02]">
+                        "{ans.answer}"
+                      </p>
+                      <div className="space-y-1 pt-1 border-t border-white/[0.03] text-[11px]">
+                        <p className="text-gray-300"><span className="text-brand-emerald font-medium">AI Feedback:</span> {ans.feedback}</p>
+                        {ans.matchedKeywords && ans.matchedKeywords.length > 0 && (
+                          <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                            <span className="text-[10px] text-gray-500">Detected Concepts:</span>
+                            {ans.matchedKeywords.map((kw, kwIdx) => (
+                              <span key={kwIdx} className="text-[10px] bg-white/[0.06] text-gray-300 px-1.5 py-0.2 rounded">
+                                {kw}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -190,21 +221,39 @@ export default function Interview() {
               /* Active rounds */
               <div className="space-y-6">
                 {/* Active Question Bubble */}
-                <div className="flex gap-4 items-start p-4 bg-obsidian-950 border border-white/[0.04] rounded-xl">
+                <div className="flex gap-4 items-start p-4 bg-obsidian-950 border border-white/[0.04] rounded-xl relative overflow-hidden">
                   <div className="p-2.5 bg-brand-blue/10 text-brand-blue rounded-lg border border-brand-blue/20 shrink-0">
                     <MessageSquare className="h-5 w-5" />
                   </div>
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Question</p>
-                    <p className="text-sm font-medium text-white leading-relaxed mt-1">
-                      {activeInterview.questions[activeInterview.currentQuestionIndex].question}
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-semibold text-brand-blue uppercase tracking-wider bg-brand-blue/10 px-2 py-0.5 rounded">
+                        {activeInterview.questions[activeInterview.currentQuestionIndex]?.category || 'Technical Assessment'}
+                      </span>
+                      {activeInterview.questions[activeInterview.currentQuestionIndex]?.is_adaptive && (
+                        <span className="text-[10px] font-bold text-brand-amber uppercase tracking-wider bg-brand-amber/10 border border-brand-amber/20 px-2 py-0.5 rounded flex items-center gap-1 animate-pulse">
+                          <Sparkles className="h-3 w-3" />
+                          Adaptive Follow-Up
+                        </span>
+                      )}
+                      {activeInterview.questions[activeInterview.currentQuestionIndex]?.context_source && (
+                        <span className="text-[10px] text-gray-500 italic">
+                          ({activeInterview.questions[activeInterview.currentQuestionIndex].context_source})
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-white leading-relaxed">
+                      {activeInterview.questions[activeInterview.currentQuestionIndex]?.question}
                     </p>
                   </div>
                 </div>
 
                 {/* Answer box */}
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-400">Your Response</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs font-semibold text-gray-400">Your Technical Response</p>
+                    <span className="text-[10px] text-gray-500">Evaluated locally via Sentence-BERT & spaCy NLP</span>
+                  </div>
                   <Input
                     type="textarea"
                     placeholder="Type your response detailedly... Remember to quantify outcomes and list core methodologies."

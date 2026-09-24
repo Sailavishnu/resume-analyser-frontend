@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStudentStore } from '../../store/studentStore';
@@ -6,7 +6,7 @@ import {
   Layers, Upload, FileText, Star, GitCompare, Trash2, ArrowRight,
   CheckCircle2, AlertCircle, Sparkles, Check, ShieldAlert, Clock,
   SearchCode, Swords, ArrowUpRight, Crown, Shield, TrendingUp,
-  BarChart3, ChevronRight, Copy, ArrowLeftRight
+  BarChart3, ChevronRight, Copy, ArrowLeftRight, ExternalLink
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -17,10 +17,12 @@ import toast from 'react-hot-toast';
 
 export default function ResumeVault() {
   const [activeTab, setActiveTab] = useState('resumes');
+  const [uploadSlot, setUploadSlot] = useState('primary');
   const navigate = useNavigate();
 
   const {
     resumes,
+    fetchResumes,
     getSelectedResume,
     analyzeUploadedResume,
     analyzing,
@@ -30,13 +32,19 @@ export default function ResumeVault() {
     deleteResume
   } = useStudentStore();
 
+  useEffect(() => {
+    if (fetchResumes) {
+      fetchResumes();
+    }
+  }, []);
+
   const handleFileUpload = async (file) => {
     try {
-      toast.loading(`Analyzing ${file.name} with AI parser...`, { id: 'upload' });
-      await analyzeUploadedResume(file.name);
-      toast.success('Analysis complete! Resume added to your vault.', { id: 'upload' });
+      toast.loading(`Uploading ${file.name} to Database & parsing with AI...`, { id: 'upload' });
+      await analyzeUploadedResume(file, uploadSlot);
+      toast.success(`Success! Saved to ${uploadSlot.toUpperCase()} slot and parsed.`, { id: 'upload' });
     } catch (err) {
-      toast.error('Failed parsing file. Please try again.', { id: 'upload' });
+      toast.error(`Upload error: ${err.message || 'Please check backend logs.'}`, { id: 'upload' });
     }
   };
 
@@ -120,6 +128,8 @@ export default function ResumeVault() {
               resumes={resumes}
               onUpload={handleFileUpload}
               analyzing={analyzing}
+              uploadSlot={uploadSlot}
+              setUploadSlot={setUploadSlot}
               onSelect={setSelectedResumeId}
               onSetPrimary={setAsPrimaryResume}
               onSetSecondary={setAsSecondaryResume}
@@ -152,7 +162,7 @@ export default function ResumeVault() {
 /* ══════════════════════════════════════════════════════════════════
    TAB 1: MY RESUMES — Slot Cards + Upload
 ══════════════════════════════════════════════════════════════════ */
-function MyResumesTab({ resumes, onUpload, analyzing, onSelect, onSetPrimary, onSetSecondary, onDelete, onGoToAnalysis }) {
+function MyResumesTab({ resumes, onUpload, analyzing, onSelect, onSetPrimary, onSetSecondary, onDelete, onGoToAnalysis, uploadSlot, setUploadSlot }) {
   const primary = resumes.find(r => r.isPrimary || r.slot === 'primary');
   const secondary = resumes.find(r => r.slot === 'secondary' && !r.isPrimary);
 
@@ -163,7 +173,7 @@ function MyResumesTab({ resumes, onUpload, analyzing, onSelect, onSetPrimary, on
         {/* Primary Slot */}
         <ResumeSlotCard
           label="Primary"
-          sublabel="Used for campus placements & main applications"
+          sublabel="Used for campus placements & AI Mock Interviews"
           resume={primary}
           accentColor="cyan"
           icon={Crown}
@@ -190,18 +200,43 @@ function MyResumesTab({ resumes, onUpload, analyzing, onSelect, onSetPrimary, on
 
       {/* Upload Zone */}
       <Card className="p-6">
-        <div className="flex justify-between items-center mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <h3 className="text-sm font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
-              Upload New Resume
+              Upload Real Resume (Database Storage)
             </h3>
             <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-              PDF or DOCX format • Max 10MB per file
+              PDF or DOCX format • Auto-parsed into MongoDB for AI Interviews & ATS Scoring
             </p>
           </div>
-          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-            {resumes.length}/2 Used
-          </span>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-400">Target Slot:</span>
+            <div className="flex rounded-lg bg-[var(--bg-elevated)] p-0.5 border border-white/[0.06]">
+              <button
+                type="button"
+                onClick={() => setUploadSlot('primary')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  uploadSlot === 'primary'
+                    ? 'bg-cyan-500 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Primary Slot
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadSlot('secondary')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  uploadSlot === 'secondary'
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Secondary Slot
+              </button>
+            </div>
+          </div>
         </div>
         <FileUpload onFileSelect={onUpload} isAnalyzing={analyzing} />
       </Card>
@@ -210,7 +245,7 @@ function MyResumesTab({ resumes, onUpload, analyzing, onSelect, onSetPrimary, on
       <div className="glass-card p-4.5 border-l-4 border-cyan-500 bg-cyan-500/5 flex items-start gap-3">
         <ShieldAlert className="h-5 w-5 text-cyan-500 shrink-0 mt-0.5" />
         <div className="space-y-1 text-xs">
-          <p className="font-bold text-cyan-600 dark:text-cyan-400">Cloud Resume Storage (Cloudinary)</p>
+          <p className="font-bold text-cyan-600 dark:text-cyan-400">Database Resume Storage</p>
           <p className="leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
             Your <strong>Primary</strong> and <strong>Secondary</strong> resumes are stored securely in the cloud.
             Upload a new version, compare it against your existing CVs, then promote it when you're ready.
@@ -328,8 +363,18 @@ function ResumeSlotCard({ label, sublabel, resume, accentColor, icon: Icon, onAu
       </div>
 
       {/* Actions */}
-      <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-faint)' }}>
-        <div className="flex items-center gap-2">
+      <div className="pt-3 border-t flex items-center justify-between flex-wrap gap-2" style={{ borderColor: 'var(--border-faint)' }}>
+        <div className="flex items-center gap-2.5">
+          {resume.downloadUrl && (
+            <a
+              href={resume.downloadUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"
+            >
+              <ExternalLink className="h-3 w-3" /> View PDF
+            </a>
+          )}
           {onPromote && (
             <button
               onClick={() => {

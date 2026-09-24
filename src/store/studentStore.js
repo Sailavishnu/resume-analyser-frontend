@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { interviewService } from '../services/interviewService';
+import { resumeService } from '../services/resumeService';
 
 const MOCK_RESUMES = [
   {
@@ -312,7 +314,7 @@ export const useStudentStore = create((set, get) => ({
 
   setSelectedResumeId: (id) => set({ selectedResumeId: id }),
 
-  setAsPrimaryResume: (id) => {
+  setAsPrimaryResume: async (id) => {
     set(state => ({
       resumes: state.resumes.map(r => ({
         ...r,
@@ -321,26 +323,41 @@ export const useStudentStore = create((set, get) => ({
       })),
       selectedResumeId: id
     }));
+    try {
+      await resumeService.setSlot(id, 'primary');
+    } catch (e) {
+      console.warn('Slot update sync error:', e);
+    }
   },
 
-  setAsSecondaryResume: (id) => {
+  setAsSecondaryResume: async (id) => {
     set(state => ({
       resumes: state.resumes.map(r => ({
         ...r,
-        slot: r.id === id ? 'secondary' : (r.slot === 'secondary' ? null : r.slot)
+        slot: r.id === id ? 'secondary' : (r.slot === 'secondary' ? null : r.slot),
+        isPrimary: r.id === id ? false : r.isPrimary
       }))
     }));
+    try {
+      await resumeService.setSlot(id, 'secondary');
+    } catch (e) {
+      console.warn('Slot update sync error:', e);
+    }
   },
 
-  deleteResume: (id) => {
+  deleteResume: async (id) => {
     set(state => {
-      if (state.resumes.length <= 1) return state;
       const remaining = state.resumes.filter(r => r.id !== id);
       return {
         resumes: remaining,
-        selectedResumeId: state.selectedResumeId === id ? remaining[0].id : state.selectedResumeId
+        selectedResumeId: state.selectedResumeId === id ? remaining[0]?.id : state.selectedResumeId
       };
     });
+    try {
+      await resumeService.deleteResume(id);
+    } catch (e) {
+      console.warn('Delete resume sync error:', e);
+    }
   },
 
   getSelectedResume: () => {
@@ -451,56 +468,112 @@ export const useStudentStore = create((set, get) => ({
     });
   },
 
-  analyzeUploadedResume: async (fileName) => {
+  fetchResumes: async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    try {
+      const realResumes = await resumeService.getStudentResumes();
+      if (realResumes && realResumes.length > 0) {
+        const formatted = realResumes.map(r => ({
+          ...r,
+          id: r.id || r._id,
+          name: r.file_name || r.name,
+          slot: r.slot || (r.is_primary ? 'primary' : 'secondary'),
+          isPrimary: r.slot === 'primary' || r.is_primary,
+          score: r.score || 82,
+          atsScore: r.ats_score || 85,
+          downloadUrl: `http://127.0.0.1:8000/api/v1/resumes/${r.id}/download`,
+          analysis: r.analysis || {
+            overallScore: r.score || 82,
+            sectionScores: { skills: 85, experience: 80, education: 88, formatting: 82 },
+            keywords: { matched: r.parsed_data?.skills?.languages || [], missing: [], suggestions: [] },
+            formattingCheck: [],
+            bulletsBreakdown: []
+          }
+        }));
+        set({
+          resumes: formatted,
+          selectedResumeId: formatted.find(r => r.slot === 'primary')?.id || formatted[0]?.id
+        });
+      }
+    } catch (e) {
+      console.warn('Could not load remote resumes:', e);
+    }
+  },
+
+  analyzeUploadedResume: async (fileOrName, slot = 'primary') => {
     set({ analyzing: true });
-    await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // If real browser File object provided, upload to GridFS & MongoDB
+    if (fileOrName instanceof File) {
+      try {
+        const uploaded = await resumeService.uploadResume(fileOrName, slot);
+        const newResume = {
+          ...uploaded,
+          id: uploaded.id || uploaded._id,
+          name: uploaded.file_name || uploaded.name,
+          slot: uploaded.slot || slot,
+          isPrimary: (uploaded.slot === 'primary' || slot === 'primary'),
+          score: uploaded.score || 82,
+          atsScore: uploaded.ats_score || 86,
+          downloadUrl: `http://127.0.0.1:8000/api/v1/resumes/${uploaded.id}/download`,
+          uploadDate: uploaded.created_at || new Date().toISOString(),
+          analysis: uploaded.analysis || {
+            overallScore: uploaded.score || 82,
+            sectionScores: { skills: 85, experience: 80, education: 88, formatting: 82 },
+            keywords: { matched: uploaded.parsed_data?.skills?.languages || [], missing: [], suggestions: [] },
+            formattingCheck: [],
+            bulletsBreakdown: []
+          }
+        };
+
+        set(state => {
+          const filtered = state.resumes.filter(r => r.slot !== slot && r.id !== newResume.id);
+          const nextList = [newResume, ...filtered].slice(0, 2);
+          return {
+            resumes: nextList,
+            selectedResumeId: newResume.id,
+            analyzing: false,
+            careerReadiness: Math.min(100, state.careerReadiness + 5)
+          };
+        });
+        return newResume;
+      } catch (err) {
+        set({ analyzing: false });
+        throw err;
+      }
+    }
+
+    // Fallback simulation if string passed
+    await new Promise(resolve => setTimeout(resolve, 1500));
     const newResume = {
       id: `res-${Math.random().toString(36).substr(2, 9)}`,
-      name: fileName,
+      name: typeof fileOrName === 'string' ? fileOrName : 'Uploaded_Resume.pdf',
       version: 'v1.0',
+      slot: slot,
+      isPrimary: slot === 'primary',
       uploadDate: new Date().toISOString(),
-      score: 78,
-      atsScore: 82,
+      score: 82,
+      atsScore: 86,
       role: 'Software Engineer',
-      dimensions: [
-        { label: 'ATS Compatibility', score: 82, status: 'Strong' },
-        { label: 'Skills Alignment', score: 75, status: 'Good' },
-        { label: 'Experience Impact', score: 74, status: 'Good' },
-        { label: 'Project Depth', score: 85, status: 'Strong' },
-        { label: 'Formatting', score: 88, status: 'Strong' }
-      ],
       analysis: {
-        overallScore: 78,
-        sectionScores: { skills: 75, experience: 74, education: 88, formatting: 82 },
-        keywords: {
-          matched: ['React', 'JavaScript', 'HTML5', 'CSS3', 'Git', 'REST APIs'],
-          missing: ['TypeScript', 'Docker', 'PostgreSQL'],
-          suggestions: ['Redux', 'Unit Testing', 'TailwindCSS']
-        },
-        formattingCheck: [
-          { id: 'f1', check: 'Font size consistency', passed: true, detail: 'Clear, legible font hierarchy.' },
-          { id: 'f2', check: 'Margins & Spacing', passed: true, detail: 'Standard margins used.' },
-          { id: 'f3', check: 'Action Verbs usage', passed: true, detail: 'Good use of action verbs.' }
-        ],
-        bulletsBreakdown: [
-          {
-            id: 'b1',
-            section: 'Experience',
-            original: 'Worked with a team of students to design a web app.',
-            improved: 'Collaborated with 4 cross-functional developers to design and deploy a responsive React web application, improving page load speeds by 20%.',
-            impact: 'Utilizes action verbs and displays teamwork dynamics with concrete outcomes.'
-          }
-        ]
+        overallScore: 82,
+        sectionScores: { skills: 85, experience: 80, education: 90, formatting: 84 },
+        keywords: { matched: ['React', 'JavaScript', 'Node.js', 'SQL', 'REST APIs'], missing: [], suggestions: [] },
+        formattingCheck: [],
+        bulletsBreakdown: []
       }
     };
 
-    set(state => ({
-      resumes: [newResume, ...state.resumes],
-      selectedResumeId: newResume.id,
-      analyzing: false,
-      careerReadiness: Math.min(100, state.careerReadiness + 3)
-    }));
+    set(state => {
+      const filtered = state.resumes.filter(r => r.slot !== slot);
+      return {
+        resumes: [newResume, ...filtered].slice(0, 2),
+        selectedResumeId: newResume.id,
+        analyzing: false,
+        careerReadiness: Math.min(100, state.careerReadiness + 3)
+      };
+    });
     return newResume;
   },
 
@@ -538,34 +611,20 @@ export const useStudentStore = create((set, get) => ({
     });
   },
 
-  // AI Interview Simulator Flow
-  startInterview: (role) => {
-    const questions = [
-      {
-        id: 'q1',
-        category: 'Project Architecture',
-        question: `Based on your resume, you built dashboard systems using React and Node.js. How did you optimize those components for heavy data re-renders?`,
-        suggestedKws: ['virtualization', 'memoization', 'caching', 'useMemo', 'lazy loading', 'zustand']
-      },
-      {
-        id: 'q2',
-        category: 'Technical Core',
-        question: `Your profile mentions asynchronous APIs and REST services. Can you explain how Node.js handles asynchronous events under the hood?`,
-        suggestedKws: ['event loop', 'callback queue', 'non-blocking', 'libuv', 'promises']
-      },
-      {
-        id: 'q3',
-        category: 'Problem Solving & Gaps',
-        question: `You list Docker as a learning gap for fullstack deployments. How do you plan to containerize your applications for production clusters?`,
-        suggestedKws: ['dockerfile', 'images', 'containers', 'volumes', 'compose', 'microservices']
-      }
-    ];
+  // AI Interview Simulator Flow (Connected to FastAPI AI/ML Backend)
+  startInterview: async (role) => {
+    const selectedResume = get().getSelectedResume();
+    const sessionData = await interviewService.startInterview({
+      role: role || 'Software Engineer',
+      resumeId: selectedResume ? selectedResume.id : null,
+    });
 
     set({
       activeInterview: {
-        role,
-        currentQuestionIndex: 0,
-        questions,
+        sessionId: sessionData.session_id || sessionData.interview_id,
+        role: sessionData.target_role || role,
+        currentQuestionIndex: sessionData.current_question_index || 0,
+        questions: sessionData.questions || [sessionData.current_question],
         answers: [],
         completed: false,
         feedback: null
@@ -578,28 +637,33 @@ export const useStudentStore = create((set, get) => ({
     if (!activeInterview) return;
 
     const currentIdx = activeInterview.currentQuestionIndex;
-    const currentQuestion = activeInterview.questions[currentIdx];
+    const currentQuestion = activeInterview.questions[currentIdx] || { question: 'Question' };
 
-    const keywordsFound = currentQuestion.suggestedKws.filter(kw => 
-      answerText.toLowerCase().includes(kw.toLowerCase())
-    );
-    const score = Math.min(100, Math.max(55, 55 + (keywordsFound.length * 12) + (answerText.length > 50 ? 10 : 0)));
+    // Call real backend NLP evaluation
+    const evalData = await interviewService.submitAnswer({
+      sessionId: activeInterview.sessionId,
+      answerText
+    });
+
+    const latestEval = evalData.latest_evaluation || {};
+    const score = latestEval.score || 75;
 
     const newAnswer = {
-      questionId: currentQuestion.id,
-      category: currentQuestion.category,
+      questionId: currentQuestion.id || `q_${currentIdx + 1}`,
+      category: currentQuestion.category || 'Technical Evaluation',
       question: currentQuestion.question,
       answer: answerText,
-      score,
-      feedback: keywordsFound.length > 0 
-        ? `Strong. You highlighted key technical concepts: ${keywordsFound.join(', ')}.`
-        : `Your response was conceptual. Reference specific architectural terms like: ${currentQuestion.suggestedKws.slice(0, 3).join(', ')}.`
+      score: score,
+      relevance: latestEval.relevance,
+      technicalDepth: latestEval.technical_depth,
+      matchedKeywords: latestEval.matched_keywords || [],
+      feedback: latestEval.feedback || `Score: ${score}%. Response evaluated via NLP semantic analysis.`
     };
 
     const updatedAnswers = [...activeInterview.answers, newAnswer];
-    const isLastQuestion = currentIdx >= activeInterview.questions.length - 1;
+    const isCompleted = evalData.is_completed || (currentIdx >= (activeInterview.questions.length - 1) && !evalData.next_question);
 
-    if (isLastQuestion) {
+    if (isCompleted) {
       const totalScore = Math.round(updatedAnswers.reduce((sum, a) => sum + a.score, 0) / updatedAnswers.length);
       const interviewSummary = {
         id: `int-${Math.random().toString(36).substr(2, 9)}`,
@@ -608,7 +672,7 @@ export const useStudentStore = create((set, get) => ({
         date: new Date().toISOString().split('T')[0],
         score: totalScore,
         status: 'Completed',
-        feedback: `Completed with an overall score of ${totalScore}%. Strong grasp of React client state and architectural boundaries. Recommended next: deepen containerization and deployment fundamentals.`
+        feedback: evalData.report?.summary || `Completed with an overall score of ${totalScore}%. Good technical foundation evaluated across core engineering principles.`
       };
 
       set(state => ({
@@ -623,10 +687,20 @@ export const useStudentStore = create((set, get) => ({
         careerReadiness: Math.min(100, state.careerReadiness + 2)
       }));
     } else {
+      const updatedQuestions = [...activeInterview.questions];
+      if (evalData.next_question) {
+        if (currentIdx + 1 < updatedQuestions.length) {
+          updatedQuestions[currentIdx + 1] = evalData.next_question;
+        } else {
+          updatedQuestions.push(evalData.next_question);
+        }
+      }
+
       set({
         activeInterview: {
           ...activeInterview,
           answers: updatedAnswers,
+          questions: updatedQuestions,
           currentQuestionIndex: currentIdx + 1
         }
       });
