@@ -17,7 +17,7 @@ import toast from 'react-hot-toast';
 export default function ResumeAnalysis() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') || 'ats';
-  const [activeTab, setActiveTab] = useState(initialTab === 'overview' || initialTab === 'compare' ? 'ats' : initialTab);
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const {
     resumes,
@@ -37,18 +37,19 @@ export default function ResumeAnalysis() {
     { id: 'ats',         label: 'ATS Scorecard',    icon: BarChart3,   desc: 'Parser audit & score' },
     { id: 'jdmatch',     label: 'JD Matching',      icon: SearchCode,  desc: 'Target job alignment' },
     { id: 'enhancement', label: 'AI Enhancement',   icon: Sparkles,    desc: 'Bullet point rewrites' },
+    { id: 'compare',     label: 'Version Compare',  icon: GitCompare,  desc: 'Side-by-side CV diff' },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
       {/* ── Page Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b" style={{ borderColor: 'var(--border-faint)' }}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
         <div>
-          <h1 className="text-2xl font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
-            Resume Analysis Engine
+          <h1 className="text-2xl font-bold font-heading text-white flex items-center gap-2">
+            <FileText className="h-6 w-6 text-sky-400" /> Resume Analysis & Optimization Engine
           </h1>
-          <p className="text-xs sm:text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Deep-dive audit, keyword analysis, job alignment, and AI bullet optimization.
+          <p className="text-xs sm:text-sm text-gray-400 mt-0.5">
+            Deep-dive audit, keyword analysis, job alignment, side-by-side version comparison, and AI bullet optimization.
           </p>
         </div>
 
@@ -60,8 +61,7 @@ export default function ResumeAnalysis() {
               <select
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
-                className="glass text-xs font-semibold px-3 py-2 rounded-xl cursor-pointer focus:outline-none border border-white/[0.08]"
-                style={{ color: 'var(--text-primary)' }}
+                className="bg-obsidian-900 text-xs font-semibold px-3 py-2 rounded-xl cursor-pointer focus:outline-none border border-white/[0.08] text-white"
               >
                 {resumes.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -84,7 +84,7 @@ export default function ResumeAnalysis() {
       </div>
 
       {/* ── Sub-Navigation Tabs ── */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {tabs.map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
@@ -94,18 +94,18 @@ export default function ResumeAnalysis() {
               onClick={() => handleTabChange(t.id)}
               className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left cursor-pointer ${
                 isActive
-                  ? 'border-indigo-500 bg-indigo-500/10 shadow-sm'
-                  : 'glass hover:border-indigo-400/50'
+                  ? 'border-sky-500 bg-sky-500/10 shadow-sm'
+                  : 'bg-obsidian-900 hover:border-white/20'
               }`}
             >
-              <div className={`p-2 rounded-lg ${isActive ? 'bg-indigo-600 text-white' : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]'}`}>
+              <div className={`p-2 rounded-lg ${isActive ? 'bg-sky-500 text-obsidian-950 font-bold' : 'bg-obsidian-950 text-gray-400'}`}>
                 <Icon className="h-4 w-4" />
               </div>
               <div>
-                <p className={`text-xs font-bold leading-tight ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-[var(--text-primary)]'}`}>
+                <p className={`text-xs font-bold leading-tight ${isActive ? 'text-sky-400' : 'text-white'}`}>
                   {t.label}
                 </p>
-                <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-[10px] text-gray-400">
                   {t.desc}
                 </p>
               </div>
@@ -138,6 +138,10 @@ export default function ResumeAnalysis() {
           {activeTab === 'enhancement' && (
             <EnhancementPane resume={resume} />
           )}
+
+          {activeTab === 'compare' && (
+            <VersionComparePane resumes={resumes} />
+          )}
         </motion.div>
       </AnimatePresence>
     </div>
@@ -145,14 +149,14 @@ export default function ResumeAnalysis() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   2. ATS SCORECARD PANE
+   ATS SCORECARD PANE
 ══════════════════════════════════════════════════════════════════ */
 function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
   if (!resume || !resume.analysis) {
     return (
-      <div className="glass-card p-8 text-center">
-        <p className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>No resume selected.</p>
-      </div>
+      <Card className="p-8 text-center bg-obsidian-900 border border-white/10">
+        <p className="text-sm font-semibold text-gray-400">No resume selected.</p>
+      </Card>
     );
   }
 
@@ -160,34 +164,31 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Score Ring Gauge */}
-        <Card className="flex flex-col items-center justify-center p-8 text-center">
-          <h3 className="text-xs font-bold uppercase tracking-widest mb-6" style={{ color: 'var(--text-muted)' }}>
+        <Card className="flex flex-col items-center justify-center p-8 text-center bg-obsidian-900 border border-white/[0.08]">
+          <h3 className="text-xs font-bold uppercase tracking-widest mb-6 text-gray-400">
             Overall ATS Readiness
           </h3>
           <AnimatedProgress value={analysis.overallScore} type="circle" size={140} strokeWidth={10} />
 
-          <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-5 border-t" style={{ borderColor: 'var(--border-faint)' }}>
+          <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-5 border-t border-white/[0.08]">
             <div>
-              <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Skills Match</p>
-              <p className="text-sm font-bold text-emerald-500 mt-0.5">{analysis.sectionScores.skills}%</p>
+              <p className="text-[11px] text-gray-400">Skills Match</p>
+              <p className="text-sm font-bold text-emerald-400 mt-0.5">{analysis.sectionScores.skills}%</p>
             </div>
             <div>
-              <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>Layout & Format</p>
-              <p className="text-sm font-bold text-indigo-500 mt-0.5">{analysis.sectionScores.formatting}%</p>
+              <p className="text-[11px] text-gray-400">Layout & Format</p>
+              <p className="text-sm font-bold text-sky-400 mt-0.5">{analysis.sectionScores.formatting}%</p>
             </div>
           </div>
         </Card>
 
-        {/* Section Scores */}
-        <Card className="lg:col-span-2 p-6 space-y-4">
+        <Card className="lg:col-span-2 p-6 space-y-4 bg-obsidian-900 border border-white/[0.08]">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
+            <h3 className="text-sm font-bold font-heading text-white">
               Section Performance Breakdown
             </h3>
-            <span className="text-xs text-brand-blue font-semibold">4 of 4 Verified</span>
+            <span className="text-xs text-sky-400 font-semibold">4 of 4 Verified</span>
           </div>
 
           <div className="space-y-3.5">
@@ -199,12 +200,12 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
             ].map((s, i) => (
               <div key={i} className="space-y-1">
                 <div className="flex justify-between text-xs font-semibold">
-                  <span style={{ color: 'var(--text-secondary)' }}>{s.label}</span>
-                  <span style={{ color: 'var(--text-primary)' }}>{s.value}%</span>
+                  <span className="text-gray-300">{s.label}</span>
+                  <span className="text-white">{s.value}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-[var(--bg-elevated)] overflow-hidden">
+                <div className="h-2 rounded-full bg-obsidian-950 overflow-hidden border border-white/[0.04]">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-brand-blue to-brand-violet transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-sky-400 to-teal-400 transition-all duration-500"
                     style={{ width: `${s.value}%` }}
                   />
                 </div>
@@ -223,12 +224,11 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
         </Card>
       </div>
 
-      {/* Keywords Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
               Matched Keywords Found ({analysis.keywords.matched.length})
             </h4>
           </div>
@@ -239,10 +239,10 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
           </div>
         </Card>
 
-        <Card className="p-5 space-y-3">
+        <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <AlertCircle className="h-4 w-4 text-rose-500" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+            <AlertCircle className="h-4 w-4 text-rose-400" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">
               Missing High-Value Keywords ({analysis.keywords.missing.length})
             </h4>
           </div>
@@ -258,7 +258,7 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   3. JOB DESCRIPTION MATCHING PANE
+   JOB DESCRIPTION MATCHING PANE
 ══════════════════════════════════════════════════════════════════ */
 function JdMatchingPane({ resume }) {
   const [jdText, setJdText] = useState('');
@@ -296,11 +296,10 @@ function JdMatchingPane({ resume }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Input Column */}
         <div className="lg:col-span-2 space-y-4">
-          <Card className="p-5 space-y-4">
+          <Card className="p-5 space-y-4 bg-obsidian-900 border border-white/[0.08]">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h3 className="text-sm font-bold font-heading" style={{ color: 'var(--text-primary)' }}>
+              <h3 className="text-sm font-bold font-heading text-white">
                 Target Job Description
               </h3>
               <div className="flex gap-1.5 overflow-x-auto">
@@ -311,8 +310,7 @@ function JdMatchingPane({ resume }) {
                       setTargetRole(preset);
                       setJdText(`We are looking for an exceptional ${preset}. Required skills: React, TypeScript, Node.js, REST APIs, SQL, Docker, and AWS cloud deployment.`);
                     }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-[var(--border-light)] bg-[var(--bg-elevated)] hover:border-indigo-400 cursor-pointer"
-                    style={{ color: 'var(--text-secondary)' }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-white/10 bg-obsidian-950 text-gray-300 hover:border-sky-400 cursor-pointer"
                   >
                     Preset: {preset}
                   </button>
@@ -325,8 +323,7 @@ function JdMatchingPane({ resume }) {
               onChange={(e) => setJdText(e.target.value)}
               placeholder="Paste the full job description here (responsibilities, required qualifications, tech stack)..."
               rows={8}
-              className="glass-input w-full rounded-xl p-3.5 text-xs resize-none"
-              style={{ color: 'var(--text-primary)' }}
+              className="bg-obsidian-950 border border-white/10 w-full rounded-xl p-3.5 text-xs text-white resize-none focus:outline-none focus:border-sky-400"
             />
 
             <div className="flex justify-end">
@@ -342,25 +339,24 @@ function JdMatchingPane({ resume }) {
           </Card>
         </div>
 
-        {/* Results Column */}
         <div>
           {results ? (
-            <Card className="p-6 space-y-5">
+            <Card className="p-6 space-y-5 bg-obsidian-900 border border-white/[0.08]">
               <div className="text-center">
-                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                   Job Description Match
                 </p>
-                <div className="text-4xl font-extrabold font-heading text-indigo-500 mt-2">
+                <div className="text-4xl font-extrabold font-heading text-sky-400 mt-2">
                   {results.score}%
                 </div>
-                <p className="text-[11px] text-emerald-500 font-semibold mt-1">
+                <p className="text-[11px] text-emerald-400 font-semibold mt-1">
                   {results.score >= 75 ? 'Strong Candidate Fit' : 'Moderate Match — Address Missing Skills'}
                 </p>
               </div>
 
-              <div className="space-y-3 pt-3 border-t" style={{ borderColor: 'var(--border-faint)' }}>
+              <div className="space-y-3 pt-3 border-t border-white/[0.08]">
                 <div>
-                  <p className="text-xs font-bold text-emerald-500 mb-1.5 flex items-center gap-1">
+                  <p className="text-xs font-bold text-emerald-400 mb-1.5 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Matched In JD ({results.matched.length})
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -371,7 +367,7 @@ function JdMatchingPane({ resume }) {
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-rose-500 mb-1.5 flex items-center gap-1">
+                  <p className="text-xs font-bold text-rose-400 mb-1.5 flex items-center gap-1">
                     <AlertCircle className="h-3.5 w-3.5" /> Missing From Resume ({results.missing.length})
                   </p>
                   <div className="flex flex-wrap gap-1">
@@ -383,10 +379,10 @@ function JdMatchingPane({ resume }) {
               </div>
             </Card>
           ) : (
-            <Card className="p-6 text-center space-y-3 flex flex-col items-center justify-center h-full min-h-[220px]">
-              <SearchCode className="h-8 w-8 text-brand-blue/40" />
-              <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>No Comparison Run Yet</p>
-              <p className="text-[11px] leading-relaxed max-w-[220px]" style={{ color: 'var(--text-muted)' }}>
+            <Card className="p-6 text-center space-y-3 flex flex-col items-center justify-center h-full min-h-[220px] bg-obsidian-900 border border-white/[0.08]">
+              <SearchCode className="h-8 w-8 text-sky-400/40" />
+              <p className="text-xs font-semibold text-white">No Comparison Run Yet</p>
+              <p className="text-[11px] text-gray-400 leading-relaxed max-w-[220px]">
                 Paste a target job posting on the left to see how your active CV scores against the recruiter's requirements.
               </p>
             </Card>
@@ -398,7 +394,7 @@ function JdMatchingPane({ resume }) {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   4. AI BULLET ENHANCEMENT PANE
+   AI BULLET ENHANCEMENT PANE
 ══════════════════════════════════════════════════════════════════ */
 function EnhancementPane({ resume }) {
   const [copiedIdx, setCopiedIdx] = useState(null);
@@ -433,45 +429,149 @@ function EnhancementPane({ resume }) {
 
   return (
     <div className="space-y-4">
-      <div className="glass-card p-4 border-l-4 border-indigo-500 flex items-center justify-between">
+      <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 flex items-center justify-between">
         <div className="text-xs">
-          <p className="font-bold text-indigo-600 dark:text-indigo-400">AI Bullet Point Optimization</p>
-          <p style={{ color: 'var(--text-muted)' }}>
+          <p className="font-bold text-sky-400">AI Bullet Point Optimization Engine</p>
+          <p className="text-gray-300">
             Weak bullets state passive duties. Strong bullets state: <strong>Action Verb + Task + Quantifiable Impact</strong>.
           </p>
         </div>
-        <Badge variant="indigo">XYZ Formula</Badge>
+        <Badge variant="blue">XYZ Formula</Badge>
       </div>
 
       <div className="space-y-3.5">
         {bulletOptimizations.map((b, i) => (
-          <Card key={i} className="p-5 space-y-3">
+          <Card key={i} className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-500">Before (Vague / Low ATS Weight):</span>
-              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-rose-400">Before (Vague / Low ATS Weight):</span>
+              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
                 {b.gain}
               </span>
             </div>
-            <p className="text-xs text-rose-900/80 dark:text-rose-200/80 bg-rose-500/5 p-2.5 rounded-lg border border-rose-500/20">
+            <p className="text-xs text-rose-300 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20">
               {b.original}
             </p>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-brand-violet" /> AI Enhanced (XYZ Metric Driven):
+              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-purple-400" /> AI Enhanced (XYZ Metric Driven):
               </span>
               <button
                 onClick={() => handleCopy(b.enhanced, i)}
-                className="flex items-center gap-1 text-[11px] font-semibold text-indigo-500 hover:text-indigo-600 cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-semibold text-sky-400 hover:text-sky-300 cursor-pointer"
               >
                 {copiedIdx === i ? <><Check className="h-3 w-3" /> Copied</> : <><Copy className="h-3 w-3" /> Copy Bullet</>}
               </button>
             </div>
-            <p className="text-xs font-medium text-emerald-900/90 dark:text-emerald-200/90 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/30 leading-relaxed">
+            <p className="text-xs font-medium text-emerald-300 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/30 leading-relaxed">
               {b.enhanced}
             </p>
           </Card>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   VERSION COMPARISON PANE (Side-by-Side Diff)
+══════════════════════════════════════════════════════════════════ */
+function VersionComparePane({ resumes }) {
+  const [v1Id, setV1Id] = useState(resumes[0]?.id || '');
+  const [v2Id, setV2Id] = useState(resumes[1]?.id || resumes[0]?.id || '');
+
+  const v1 = resumes.find(r => r.id === v1Id) || resumes[0];
+  const v2 = resumes.find(r => r.id === v2Id) || resumes[1] || resumes[0];
+
+  const scoreDiff = (v2?.atsScore || v2?.score || 88) - (v1?.atsScore || v1?.score || 82);
+
+  return (
+    <div className="space-y-6">
+      <Card className="p-4 bg-obsidian-900 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <GitCompare className="h-4 w-4 text-sky-400" /> Side-by-Side Resume Version Comparator
+          </h3>
+          <p className="text-xs text-gray-400">Select any two CV slots to compare ATS improvements side-by-side.</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <select
+            value={v1Id}
+            onChange={e => setV1Id(e.target.value)}
+            className="bg-obsidian-950 border border-white/10 text-xs text-white rounded-lg p-2"
+          >
+            {resumes.map(r => (
+              <option key={r.id} value={r.id}>Base: {r.name} ({r.atsScore || r.score}%)</option>
+            ))}
+          </select>
+
+          <span className="text-gray-500 font-bold">vs</span>
+
+          <select
+            value={v2Id}
+            onChange={e => setV2Id(e.target.value)}
+            className="bg-obsidian-950 border border-white/10 text-xs text-white rounded-lg p-2"
+          >
+            {resumes.map(r => (
+              <option key={r.id} value={r.id}>Compare: {r.name} ({r.atsScore || r.score}%)</option>
+            ))}
+          </select>
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Version 1 */}
+        <Card className="p-6 space-y-4 bg-obsidian-900 border border-white/[0.08]">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div>
+              <Badge variant="blue">Base Version</Badge>
+              <h4 className="text-base font-bold text-white mt-1">{v1?.name}</h4>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-extrabold text-white">{v1?.atsScore || v1?.score || 82}%</span>
+              <p className="text-[10px] text-gray-400">ATS Score</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <p className="text-gray-400">Target Role: <strong className="text-white">{v1?.targetRole || 'Fullstack Engineer'}</strong></p>
+            <p className="text-gray-400">Matched Keywords: <strong className="text-emerald-400">{(v1?.analysis?.keywords?.matched || ['React', 'JavaScript', 'SQL']).length} Found</strong></p>
+
+            <div className="flex flex-wrap gap-1">
+              {(v1?.analysis?.keywords?.matched || ['React', 'JavaScript', 'SQL']).map(k => (
+                <span key={k} className="px-2 py-0.5 rounded bg-white/[0.04] text-gray-300 text-[10px]">{k}</span>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* Version 2 */}
+        <Card className="p-6 space-y-4 bg-obsidian-900 border border-teal-500/30">
+          <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
+            <div>
+              <Badge variant="teal">Newer Version</Badge>
+              <h4 className="text-base font-bold text-white mt-1">{v2?.name}</h4>
+            </div>
+            <div className="text-right">
+              <span className="text-2xl font-extrabold text-teal-400">{v2?.atsScore || v2?.score || 88}%</span>
+              <p className={`text-[10px] font-bold ${scoreDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {scoreDiff >= 0 ? `+${scoreDiff}% Improvement` : `${scoreDiff}% Regression`}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs">
+            <p className="text-gray-400">Target Role: <strong className="text-white">{v2?.targetRole || 'Fullstack Engineer'}</strong></p>
+            <p className="text-gray-400">Matched Keywords: <strong className="text-emerald-400">{(v2?.analysis?.keywords?.matched || ['React', 'JavaScript', 'Node.js', 'SQL', 'TypeScript']).length} Found</strong></p>
+
+            <div className="flex flex-wrap gap-1">
+              {(v2?.analysis?.keywords?.matched || ['React', 'JavaScript', 'Node.js', 'SQL', 'TypeScript']).map(k => (
+                <span key={k} className="px-2 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30 text-[10px]">{k}</span>
+              ))}
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
