@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
   BookOpen, User, Settings, Users, Calendar, LineChart, Building,
   GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity,
-  Compass, Award, Layers
+  Compass, Award, Layers, Brain, ShieldCheck, Cpu, Server, Target
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
@@ -15,35 +15,41 @@ export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSideb
   const isAdmin = role === 'admin';
 
   const studentNav = [
-    { name: 'Dashboard',         to: '/student',              icon: LayoutDashboard },
-    { name: 'Resume Guide',      to: '/student/guide',        icon: GraduationCap },
-    { name: 'Resume Builder',    to: '/student/builder',      icon: FilePlus },
-    { name: 'Resume Vault',      to: '/student/resumes',      icon: Layers },
-    { name: 'Resume Analysis',   to: '/student/analysis',     icon: Sparkles },
-    { name: 'Career Roadmap',    to: '/student/roadmap',      icon: Compass },
-    { name: 'Skill Assessments', to: '/student/assessments',  icon: Award },
-    { name: 'Applications',      to: '/student/applications', icon: Briefcase },
-    { name: 'Messages',          to: '/student/messages',     icon: MessageSquare },
-    { name: 'AI Interview',      to: '/student/interview',    icon: BookOpen },
-    { name: 'Profile & Settings',to: '/student/profile',      icon: User },
+    { name: 'Dashboard',          to: '/student',                  icon: LayoutDashboard },
+    { name: 'Resume Guide',       to: '/student/guide',            icon: GraduationCap },
+    { name: 'Resume Builder',     to: '/student/builder',          icon: FilePlus },
+    { name: 'Resume Vault',       to: '/student/resumes',          icon: Layers },
+    { name: 'Resume Analysis',    to: '/student/analysis',         icon: Sparkles },
+    { name: 'Career Roadmap',     to: '/student/roadmap',          icon: Compass },
+    { name: 'Career Navigator',   to: '/student/career-navigator', icon: Target },
+    { name: 'Skill Assessments',  to: '/student/assessments',      icon: Award },
+    { name: 'Applications',       to: '/student/applications',     icon: Briefcase },
+    { name: 'Messages',           to: '/student/messages',         icon: MessageSquare },
+    { name: 'AI Interview',       to: '/student/interview',        icon: BookOpen },
+    { name: 'Profile & Settings', to: '/student/profile',          icon: User },
   ];
 
   const hrNav = [
-    { name: 'Dashboard',          to: '/hr',             icon: LayoutDashboard },
-    { name: 'Job Postings',       to: '/hr/jobs',        icon: Briefcase },
-    { name: 'Candidate Pipeline', to: '/hr/candidates',  icon: Users },
-    { name: 'Interviews',         to: '/hr/interviews',  icon: Calendar },
-    { name: 'Messages',           to: '/hr/messages',    icon: MessageSquare },
-    { name: 'Analytics & Reports',to: '/hr/analytics',   icon: LineChart },
-    { name: 'Company & Settings', to: '/hr/company',     icon: Building },
+    { name: 'Dashboard',          to: '/hr',                icon: LayoutDashboard },
+    { name: 'Job Postings',       to: '/hr/jobs',           icon: Briefcase },
+    { name: 'Candidate Pipeline', to: '/hr/candidates',     icon: Users },
+    { name: 'AI Screening',       to: '/hr/screening',      icon: ShieldCheck },
+    { name: 'Talent Pool',        to: '/hr/talent-pool',    icon: Brain },
+    { name: 'JD Generator',       to: '/hr/jd-generator',   icon: Sparkles },
+    { name: 'Interviews',         to: '/hr/interviews',     icon: Calendar },
+    { name: 'Analytics & Reports',to: '/hr/analytics',      icon: LineChart },
+    { name: 'Messages',           to: '/hr/messages',       icon: MessageSquare },
+    { name: 'Company & Settings', to: '/hr/company',        icon: Building },
   ];
 
   const adminNav = [
-    { name: 'Dashboard',          to: '/admin',          icon: LayoutDashboard },
-    { name: 'User Management',    to: '/admin/users',    icon: Users },
-    { name: 'Content & Job Audit',to: '/admin/content',  icon: FileCheck },
-    { name: 'Platform Analytics', to: '/admin/analytics',icon: LineChart },
-    { name: 'System Settings',    to: '/admin/settings', icon: Sliders },
+    { name: 'Dashboard',          to: '/admin',               icon: LayoutDashboard },
+    { name: 'User Management',    to: '/admin/users',         icon: Users },
+    { name: 'Content & Job Audit',to: '/admin/content',       icon: FileCheck },
+    { name: 'Platform Analytics', to: '/admin/analytics',     icon: LineChart },
+    { name: 'AI Engine Control',  to: '/admin/ai-control',    icon: Cpu },
+    { name: 'System Monitor',     to: '/admin/system',        icon: Server },
+    { name: 'System Settings',    to: '/admin/settings',      icon: Sliders },
   ];
 
   const nav = isAdmin ? adminNav : isHr ? hrNav : studentNav;

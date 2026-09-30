@@ -19,6 +19,7 @@ const ResumeBuilder       = lazy(() => import('../pages/student/Builder'));
 const ResumeVault         = lazy(() => import('../pages/student/Vault'));
 const ResumeAnalysis      = lazy(() => import('../pages/student/Analysis'));
 const StudentRoadmap      = lazy(() => import('../pages/student/Roadmap'));
+const CareerNavigator     = lazy(() => import('../pages/student/CareerNavigator'));
 const StudentAssessments  = lazy(() => import('../pages/student/Assessments'));
 const AiMockInterview     = lazy(() => import('../pages/student/Interview'));
 const StudentApplications = lazy(() => import('../pages/student/Applications'));
@@ -32,6 +33,8 @@ const HrDashboard  = lazy(() => import('../pages/hr/Dashboard'));
 const HrJobs       = lazy(() => import('../pages/hr/Jobs'));
 const HrCandidates = lazy(() => import('../pages/hr/Candidates'));
 const HrScreening  = lazy(() => import('../pages/hr/Screening'));
+const TalentPool   = lazy(() => import('../pages/hr/TalentPool'));
+const JdGenerator  = lazy(() => import('../pages/hr/JdGenerator'));
 const HrInterviews = lazy(() => import('../pages/hr/Interviews'));
 const HrAnalytics  = lazy(() => import('../pages/hr/Analytics'));
 const HrReports    = lazy(() => import('../pages/hr/Reports'));
@@ -47,6 +50,8 @@ const AdminUsers        = lazy(() => import('../pages/admin/Users'));
 const AdminContentAudit = lazy(() => import('../pages/admin/ContentAudit'));
 const AdminAnalytics    = lazy(() => import('../pages/admin/Analytics'));
 const AdminSettings     = lazy(() => import('../pages/admin/Settings'));
+const AiControl         = lazy(() => import('../pages/admin/AiControl'));
+const SystemMonitor     = lazy(() => import('../pages/admin/SystemMonitor'));
 
 // ── Route guard ──────────────────────────────────────────────────────
 function ProtectedRoute({ children, requiredRole }) {
@@ -89,6 +94,7 @@ export default function AppRoutes() {
           <Route path="resumes" element={<ResumeVault />} />
           <Route path="analysis" element={<ResumeAnalysis />} />
           <Route path="roadmap" element={<StudentRoadmap />} />
+          <Route path="career-navigator" element={<CareerNavigator />} />
           <Route path="assessments" element={<StudentAssessments />} />
           <Route path="messages" element={<Messages />} />
           <Route path="interview" element={<AiMockInterview />} />
@@ -116,6 +122,8 @@ export default function AppRoutes() {
           <Route path="jobs" element={<HrJobs />} />
           <Route path="candidates" element={<HrCandidates />} />
           <Route path="screening" element={<HrScreening />} />
+          <Route path="talent-pool" element={<TalentPool />} />
+          <Route path="jd-generator" element={<JdGenerator />} />
           <Route path="interviews" element={<HrInterviews />} />
           <Route path="messages" element={<Messages />} />
           <Route path="analytics" element={<HrAnalytics />} />
@@ -134,6 +142,8 @@ export default function AppRoutes() {
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
           <Route path="content" element={<AdminContentAudit />} />
+          <Route path="ai-control" element={<AiControl />} />
+          <Route path="system" element={<SystemMonitor />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="messages" element={<Messages />} />
