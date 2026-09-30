@@ -3,7 +3,7 @@ import { useHrStore } from '../../store/hrStore';
 import {
   Mail, Phone, Calendar, UserCheck, XCircle, Search, Filter,
   Briefcase, Eye, ShieldAlert, CheckSquare, Square, Users,
-  X, Check, Sparkles, Award, ArrowRight, Layers
+  X, Check, Sparkles, Award, ArrowRight, Layers, Sliders, Download, RefreshCw
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -19,6 +19,15 @@ export default function Candidates() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [minScoreFilter, setMinScoreFilter] = useState(0);
   const [selectedCandidate, setSelectedCandidate] = useState(candidates[0] || null);
+
+  // Custom Weighting Sliders
+  const [showWeightSliders, setShowWeightSliders] = useState(false);
+  const [weights, setWeights] = useState({
+    skills: 50,
+    experience: 30,
+    education: 10,
+    formatting: 10
+  });
 
   // Candidate comparison state (up to 3)
   const [compareIds, setCompareIds] = useState([]);
@@ -46,15 +55,64 @@ export default function Candidates() {
     });
   };
 
+  // Recalculate dynamic match score based on weights
+  const computeDynamicScore = (cand) => {
+    const totalWeight = weights.skills + weights.experience + weights.education + weights.formatting;
+    if (totalWeight === 0) return cand.matchScore;
+
+    const baseSkills = cand.skills?.length ? Math.min(100, cand.skills.length * 15) : 70;
+    const baseExp = Math.min(100, (cand.experienceYears || 1) * 20);
+    const baseEdu = cand.education ? 85 : 60;
+    const baseFmt = cand.matchScore || 80;
+
+    const weighted = (
+      (baseSkills * weights.skills) +
+      (baseExp * weights.experience) +
+      (baseEdu * weights.education) +
+      (baseFmt * weights.formatting)
+    ) / totalWeight;
+
+    return Math.round(weighted);
+  };
+
+  // Export CSV Report
+  const exportCandidatesCSV = () => {
+    const headers = ['Candidate ID', 'Name', 'Email', 'Role', 'Experience (Yrs)', 'Match Score', 'Status', 'Discovered Interlinked Skills'];
+    const rows = candidates.map(c => [
+      c.id,
+      `"${c.name}"`,
+      c.email,
+      `"${c.targetRole || 'Candidate'}"`,
+      c.experienceYears || 0,
+      computeDynamicScore(c),
+      c.status,
+      `"${(c.discovered_linked_skills || []).join(', ')}"`
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Candidate_Report_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Candidate dossier report exported to CSV!');
+  };
+
   // Filter candidates matching current selected campaign + search term + status + score
-  const filteredCandidates = candidates.filter(cand => {
+  const filteredCandidates = candidates.map(c => ({
+    ...c,
+    dynamicScore: computeDynamicScore(c)
+  })).filter(cand => {
     const matchesCampaign = !selectedCampaignId || cand.appliedCampaignId === selectedCampaignId;
     const matchesSearch =
       cand.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cand.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cand.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = statusFilter === 'all' || cand.status === statusFilter;
-    const matchesScore = cand.matchScore >= minScoreFilter;
+    const matchesScore = cand.dynamicScore >= minScoreFilter;
 
     return matchesCampaign && matchesSearch && matchesStatus && matchesScore;
   });
@@ -66,29 +124,118 @@ export default function Candidates() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-white">Candidate Pipeline & AI Match</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold font-heading text-white">Candidate Pipeline & Dynamic AI Ranker</h1>
+            <Badge variant="teal">Knowledge Graph Active</Badge>
+          </div>
           <p className="text-xs text-gray-400">
-            Review parsed candidate dossiers, compare applicant skills, and manage recruitment decisions.
+            Review candidates with custom evaluation weights, inter-domain skill correlation, and export options.
           </p>
         </div>
 
-        {compareIds.length >= 2 && (
+        <div className="flex items-center gap-2">
           <Button
-            variant="teal"
+            variant="outline"
             size="sm"
-            onClick={() => setIsCompareOpen(true)}
-            icon={Users}
-            className="animate-pulse shadow-lg shadow-teal-500/20"
+            onClick={() => setShowWeightSliders(!showWeightSliders)}
+            icon={Sliders}
           >
-            Compare Candidates ({compareIds.length}/3)
+            {showWeightSliders ? 'Hide Scoring Weights' : 'Adjust Weights'}
           </Button>
-        )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCandidatesCSV}
+            icon={Download}
+          >
+            Export CSV
+          </Button>
+
+          {compareIds.length >= 2 && (
+            <Button
+              variant="teal"
+              size="sm"
+              onClick={() => setIsCompareOpen(true)}
+              icon={Users}
+              className="animate-pulse shadow-lg shadow-teal-500/20"
+            >
+              Compare ({compareIds.length}/3)
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Recruiter Custom Weight Calculator Sliders */}
+      {showWeightSliders && (
+        <Card className="p-5 border border-teal-500/30 bg-obsidian-900/95 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sliders className="h-4 w-4 text-teal-400" />
+              <h3 className="text-sm font-bold text-white">Custom Candidate Ranking Weight Calculator</h3>
+            </div>
+            <span className="text-xs text-gray-400">Adjust percentages to dynamically re-order candidates in real time</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+            <div>
+              <div className="flex justify-between font-semibold text-gray-300 mb-1">
+                <span>Verified Skills</span>
+                <span className="text-teal-400">{weights.skills}%</span>
+              </div>
+              <input
+                type="range" min="0" max="100" step="5"
+                value={weights.skills}
+                onChange={e => setWeights({ ...weights, skills: Number(e.target.value) })}
+                className="w-full accent-teal-400 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between font-semibold text-gray-300 mb-1">
+                <span>Work Experience</span>
+                <span className="text-sky-400">{weights.experience}%</span>
+              </div>
+              <input
+                type="range" min="0" max="100" step="5"
+                value={weights.experience}
+                onChange={e => setWeights({ ...weights, experience: Number(e.target.value) })}
+                className="w-full accent-sky-400 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between font-semibold text-gray-300 mb-1">
+                <span>Education Match</span>
+                <span className="text-purple-400">{weights.education}%</span>
+              </div>
+              <input
+                type="range" min="0" max="100" step="5"
+                value={weights.education}
+                onChange={e => setWeights({ ...weights, education: Number(e.target.value) })}
+                className="w-full accent-purple-400 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <div className="flex justify-between font-semibold text-gray-300 mb-1">
+                <span>ATS Formatting</span>
+                <span className="text-amber-400">{weights.formatting}%</span>
+              </div>
+              <input
+                type="range" min="0" max="100" step="5"
+                value={weights.formatting}
+                onChange={e => setWeights({ ...weights, formatting: Number(e.target.value) })}
+                className="w-full accent-amber-400 cursor-pointer"
+              />
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Filter Controls Bar */}
       <Card className="p-4 flex flex-col lg:flex-row gap-4 items-center justify-between border border-white/[0.08] bg-obsidian-900/90">
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* Campaign Selector */}
           <div className="w-full sm:w-60">
             <Input
               type="select"
@@ -102,20 +249,18 @@ export default function Candidates() {
             />
           </div>
 
-          {/* Search Box */}
           <div className="relative flex-1 sm:w-64">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
             <input
               type="text"
-              placeholder="Search by name or skill..."
+              placeholder="Search candidate name or skill..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full bg-obsidian-950 border border-white/[0.08] hover:border-white/[0.12] focus:border-brand-teal rounded-lg py-1.5 pl-10 pr-4 text-xs text-gray-300 focus:outline-none transition-colors"
+              className="w-full bg-obsidian-950 border border-white/[0.08] hover:border-white/[0.12] focus:border-teal-400 rounded-lg py-1.5 pl-10 pr-4 text-xs text-gray-300 focus:outline-none transition-colors"
             />
           </div>
         </div>
 
-        {/* Status and Score Quick Filters */}
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {['all', 'applied', 'shortlisted', 'rejected'].map(st => (
             <button
@@ -123,7 +268,7 @@ export default function Candidates() {
               onClick={() => setStatusFilter(st)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all cursor-pointer ${
                 statusFilter === st
-                  ? 'bg-brand-teal text-white shadow-sm shadow-brand-teal/30'
+                  ? 'bg-teal-500 text-obsidian-950 shadow-sm font-bold'
                   : 'bg-white/[0.03] text-gray-400 hover:text-white border border-white/[0.06]'
               }`}
             >
@@ -136,7 +281,7 @@ export default function Candidates() {
             onChange={e => setMinScoreFilter(Number(e.target.value))}
             className="bg-obsidian-950 border border-white/[0.08] text-xs text-gray-300 rounded-lg py-1.5 px-3 focus:outline-none"
           >
-            <option value="0">All Match Scores</option>
+            <option value="0">All Scores</option>
             <option value="75">75%+ Fit</option>
             <option value="85">85%+ Top Fit</option>
             <option value="90">90%+ Exceptional</option>
@@ -146,7 +291,6 @@ export default function Candidates() {
 
       {/* Split Grid: List Table on Left (2/3), Details on Right (1/3) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-        {/* Left Column: Candidates Table */}
         <div className="xl:col-span-2 space-y-4">
           <Card className="overflow-hidden border border-white/[0.08] bg-obsidian-900/80">
             <div className="overflow-x-auto">
@@ -156,7 +300,7 @@ export default function Candidates() {
                     <th className="px-4 py-4 w-10 text-center">Compare</th>
                     <th className="px-5 py-4 font-semibold uppercase tracking-wider">Candidate</th>
                     <th className="px-5 py-4 font-semibold uppercase tracking-wider">Experience</th>
-                    <th className="px-5 py-4 font-semibold uppercase tracking-wider">ATS Score</th>
+                    <th className="px-5 py-4 font-semibold uppercase tracking-wider">Weighted Score</th>
                     <th className="px-5 py-4 font-semibold uppercase tracking-wider">Status</th>
                     <th className="px-5 py-4 font-semibold uppercase tracking-wider text-right">Inspect</th>
                   </tr>
@@ -171,13 +315,13 @@ export default function Candidates() {
                           key={cand.id}
                           onClick={() => setSelectedCandidate(cand)}
                           className={`hover:bg-white/[0.02] transition-colors cursor-pointer ${
-                            selectedCandidate?.id === cand.id ? 'bg-brand-teal/[0.06]' : ''
+                            selectedCandidate?.id === cand.id ? 'bg-teal-500/[0.08]' : ''
                           }`}
                         >
                           <td className="px-4 py-4 text-center" onClick={e => toggleCompare(cand.id, e)}>
-                            <button className="text-gray-400 hover:text-brand-teal transition-colors cursor-pointer">
+                            <button className="text-gray-400 hover:text-teal-400 transition-colors cursor-pointer">
                               {isComparing ? (
-                                <CheckSquare className="h-4 w-4 text-brand-teal" />
+                                <CheckSquare className="h-4 w-4 text-teal-400" />
                               ) : (
                                 <Square className="h-4 w-4 text-gray-500" />
                               )}
@@ -186,7 +330,12 @@ export default function Candidates() {
 
                           <td className="px-5 py-4">
                             <div>
-                              <p className="font-semibold text-white">{cand.name}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-semibold text-white">{cand.name}</p>
+                                {cand.discovered_linked_skills?.length > 0 && (
+                                  <Badge variant="teal" size="sm">Graph Match</Badge>
+                                )}
+                              </div>
                               <p className="text-[10px] text-gray-400 mt-0.5">{cand.email}</p>
                             </div>
                           </td>
@@ -196,14 +345,14 @@ export default function Candidates() {
                           </td>
 
                           <td className="px-5 py-4 font-bold">
-                            <span className={`px-2 py-0.5 rounded text-[11px] ${
-                              cand.matchScore >= 85
+                            <span className={`px-2.5 py-1 rounded text-[11px] font-extrabold ${
+                              cand.dynamicScore >= 85
                                 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                : cand.matchScore >= 70
+                                : cand.dynamicScore >= 70
                                 ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                                 : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                             }`}>
-                              {cand.matchScore}% Match
+                              {cand.dynamicScore}%
                             </span>
                           </td>
 
@@ -255,32 +404,41 @@ export default function Candidates() {
           {selectedCandidate ? (
             <Card className="p-6 space-y-6 sticky top-24 border border-white/[0.08] bg-obsidian-900/90">
               <div className="flex flex-col items-center text-center space-y-3 pb-4 border-b border-white/[0.06]">
-                <div className="h-16 w-16 bg-brand-teal/15 border border-brand-teal/30 text-teal-300 rounded-2xl flex items-center justify-center font-bold text-2xl uppercase">
+                <div className="h-16 w-16 bg-teal-500/15 border border-teal-500/30 text-teal-300 rounded-2xl flex items-center justify-center font-bold text-2xl uppercase">
                   {selectedCandidate.name.charAt(0)}
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-white font-heading">{selectedCandidate.name}</h3>
                   <p className="text-xs text-gray-400 mt-0.5">{selectedCandidate.education}</p>
-                  <p className="text-[11px] text-brand-teal mt-1 font-semibold">
+                  <p className="text-[11px] text-teal-400 mt-1 font-semibold">
                     {selectedCandidate.experienceYears} Years Exp • {selectedCandidate.location}
                   </p>
                 </div>
               </div>
 
-              {/* Fit highlights summary */}
               <div className="space-y-4 text-xs">
+                {selectedCandidate.discovered_linked_skills?.length > 0 && (
+                  <div className="p-3 rounded-xl bg-teal-500/10 border border-teal-500/30 space-y-1">
+                    <p className="text-[11px] font-bold text-teal-300 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" /> Inter-Domain Knowledge Graph Hit
+                    </p>
+                    <p className="text-[11px] text-gray-300">
+                      Discovered connected tools: <span className="text-white font-bold">{selectedCandidate.discovered_linked_skills.join(', ')}</span>
+                    </p>
+                  </div>
+                )}
+
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-brand-teal" /> AI Screening Summary
+                    <Sparkles className="h-3 w-3 text-teal-400" /> AI Screening Summary
                   </p>
                   <p className="text-gray-300 leading-relaxed bg-obsidian-950/80 p-3 rounded-xl border border-white/[0.06]">
-                    {selectedCandidate.analysis?.summary}
+                    {selectedCandidate.analysis?.summary || selectedCandidate.rationale}
                   </p>
                 </div>
 
-                {/* Candidate Skills Pills */}
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Verified Skills</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Verified Technical Skills</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedCandidate.skills?.map(skill => (
                       <span key={skill} className="text-[10px] px-2 py-0.5 rounded bg-white/[0.04] border border-white/[0.08] text-gray-300">
@@ -314,7 +472,6 @@ export default function Candidates() {
                 </div>
               </div>
 
-              {/* Action buttons */}
               <div className="pt-4 border-t border-white/[0.06] flex gap-3">
                 <Button
                   variant="outline"
@@ -352,7 +509,7 @@ export default function Candidates() {
           <div className="bg-obsidian-900 border border-white/[0.1] rounded-2xl max-w-5xl w-full p-6 md:p-8 space-y-6 max-h-[90vh] overflow-y-auto animate-scale-up shadow-2xl">
             <div className="flex items-start justify-between border-b border-white/[0.08] pb-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-teal">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-400">
                   Side-by-Side Candidate Evaluation
                 </span>
                 <h3 className="text-xl font-bold text-white mt-1">
@@ -367,7 +524,6 @@ export default function Candidates() {
               </button>
             </div>
 
-            {/* Side by side columns */}
             <div className={`grid grid-cols-1 md:grid-cols-${candidatesToCompare.length} gap-4`}>
               {candidatesToCompare.map(cand => (
                 <div key={cand.id} className="p-5 rounded-xl border border-white/[0.08] bg-obsidian-950/80 space-y-4">
@@ -375,8 +531,8 @@ export default function Candidates() {
                     <h4 className="text-base font-bold text-white">{cand.name}</h4>
                     <p className="text-xs text-gray-400">{cand.education}</p>
                     <div className="mt-2 inline-block">
-                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-brand-teal/15 text-teal-300 border border-brand-teal/30">
-                        {cand.matchScore}% Fit Index
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-500/15 text-teal-300 border border-teal-500/30">
+                        {computeDynamicScore(cand)}% Dynamic Match
                       </span>
                     </div>
                   </div>
