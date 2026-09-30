@@ -10,8 +10,20 @@ import ScrollReveal, { StaggerContainer, StaggerItem } from '../../components/ui
 import {
   Compass, CheckCircle2, Circle, Clock, Sparkles,
   ArrowRight, Award, AlertTriangle, BookOpen, ExternalLink,
-  ChevronRight, Layers, Flame, RefreshCw
+  ChevronRight, Layers, Flame, RefreshCw, TrendingUp, DollarSign
 } from 'lucide-react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid
+} from 'recharts';
+
+const SALARY_TRAJECTORY_DATA = [
+  { stage: 'Current Skills', salaryLpa: 6.5, title: 'Junior / Entry Engineer' },
+  { stage: 'Phase 2 Mastered', salaryLpa: 9.8, title: 'Fullstack Software Engineer' },
+  { stage: 'Phase 4 Mastered', salaryLpa: 14.5, title: 'Senior Software Engineer' },
+  { stage: 'Phase 5 Mastered', salaryLpa: 22.0, title: 'Lead Architect / Specialist' },
+];
+
+const CHART_TOOLTIP_STYLE = { backgroundColor: '#0f0f13', borderColor: '#2d2d3f', color: '#f3f4f6', fontSize: 11, borderRadius: 8 };
 
 export default function Roadmap() {
   const navigate = useNavigate();
@@ -28,7 +40,6 @@ export default function Roadmap() {
 
   const handleRoleChange = (roleId) => {
     setSelectedRole(roleId);
-    // In future or mock, could switch active roadmap
   };
 
   const phases = roadmap?.phases || [];
@@ -45,11 +56,11 @@ export default function Roadmap() {
       {/* Header Banner */}
       <ScrollReveal variant="fade" duration={0.6}>
         <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-obsidian-900 p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-brand-blue/10 blur-[90px] pointer-events-none" />
+          <div className="absolute top-0 right-0 h-48 w-48 rounded-full bg-sky-500/10 blur-[90px] pointer-events-none" />
           
           <div className="space-y-3 z-10 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-brand-blue/15 text-brand-blue border border-brand-blue/30 flex items-center gap-1.5">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-400 border border-sky-500/30 flex items-center gap-1.5">
                 <Compass className="h-3.5 w-3.5" /> Career Pathway
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
@@ -58,10 +69,10 @@ export default function Roadmap() {
             </div>
 
             <h1 className="text-2xl md:text-3xl font-extrabold text-white font-heading tracking-tight">
-              Personalized Career Roadmap
+              Personalized Career Roadmap & Trajectory
             </h1>
             <p className="text-xs md:text-sm text-gray-400 leading-relaxed">
-              Step-by-step milestone pathway for <span className="text-white font-semibold">{roadmap?.roleName || 'Frontend Engineer'}</span>. Every skill you complete dynamically updates your <span className="text-brand-blue font-semibold">Career Readiness Score ({careerReadiness}/100)</span>.
+              Step-by-step milestone pathway for <span className="text-white font-semibold">{roadmap?.roleName || 'Fullstack Engineer'}</span>. Every skill you complete dynamically raises your <span className="text-sky-400 font-semibold">Career Readiness Score ({careerReadiness}/100)</span> and estimated compensation trajectory.
             </p>
           </div>
 
@@ -78,6 +89,39 @@ export default function Roadmap() {
         </div>
       </ScrollReveal>
 
+      {/* Salary & Career Trajectory Chart */}
+      <ScrollReveal variant="slide-up" delay={0.05}>
+        <Card className="p-6 space-y-4 bg-obsidian-900/90 border border-white/[0.08]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400" /> Projected Salary & Career Trajectory (₹ LPA)
+              </h3>
+              <p className="text-xs text-gray-400">Compensation benchmarks linked to skill milestone completion</p>
+            </div>
+            <Badge variant="teal">Market Benchmark</Badge>
+          </div>
+
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={SALARY_TRAJECTORY_DATA}>
+                <defs>
+                  <linearGradient id="salGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" />
+                <XAxis dataKey="stage" stroke="#6b7280" fontSize={11} />
+                <YAxis stroke="#6b7280" fontSize={11} unit="L" />
+                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                <Area type="monotone" dataKey="salaryLpa" stroke="#10b981" strokeWidth={3} fill="url(#salGrad)" name="Estimated Salary (LPA)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </ScrollReveal>
+
       {/* Role Switcher & Phase Filter Tabs */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
@@ -90,7 +134,7 @@ export default function Roadmap() {
               onClick={() => handleRoleChange(r.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
                 selectedRole === r.id
-                  ? 'bg-brand-blue text-white shadow-sm shadow-brand-blue/30 font-semibold'
+                  ? 'bg-sky-500 text-obsidian-950 font-bold shadow-sm'
                   : 'bg-white/[0.04] text-gray-400 hover:text-white hover:bg-white/[0.08]'
               }`}
             >
@@ -135,13 +179,12 @@ export default function Roadmap() {
           return (
             <ScrollReveal key={phase.id} variant="fade" delay={pIdx * 0.05}>
               <Card className="overflow-hidden border border-white/[0.08] bg-obsidian-900/90 backdrop-blur-xl">
-                {/* Phase Header */}
                 <div className="p-5 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/[0.01]">
                   <div className="flex items-center gap-3">
                     <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                       phaseCompleted
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                        : 'bg-brand-blue/20 text-brand-blue border border-brand-blue/40'
+                        : 'bg-sky-500/20 text-sky-400 border border-sky-500/40'
                     }`}>
                       {pIdx + 1}
                     </div>
@@ -168,7 +211,6 @@ export default function Roadmap() {
                   </div>
                 </div>
 
-                {/* Phase Skills Grid */}
                 <div className="p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {phase.skills.map((skill) => (
                     <div
@@ -191,18 +233,17 @@ export default function Roadmap() {
                               {skill.completed ? (
                                 <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                               ) : (
-                                <Circle className="h-4 w-4 text-gray-500 group-hover:text-brand-blue transition-colors" />
+                                <Circle className="h-4 w-4 text-gray-500 group-hover:text-sky-400 transition-colors" />
                               )}
                             </div>
                             <span className={`text-xs font-semibold transition-colors ${
-                              skill.completed ? 'text-gray-300 line-through' : 'text-white group-hover:text-brand-blue'
+                              skill.completed ? 'text-gray-300 line-through' : 'text-white group-hover:text-sky-400'
                             }`}>
                               {skill.name}
                             </span>
                           </button>
                         </div>
 
-                        {/* Gap and Source Badges */}
                         {skill.isGap && (
                           <div className="flex flex-wrap items-center gap-1.5 pt-1">
                             <span className="text-[10px] px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 font-medium flex items-center gap-1">
@@ -217,7 +258,6 @@ export default function Roadmap() {
                         )}
                       </div>
 
-                      {/* Interactive Action Footer */}
                       <div className="flex items-center justify-between pt-2 border-t border-white/[0.05] mt-1">
                         <span className="text-[10px] text-gray-500 font-medium">
                           {skill.completed ? '✓ Mastered' : skill.isGap ? 'Immediate focus' : 'In curriculum'}
@@ -227,7 +267,7 @@ export default function Roadmap() {
                           {skill.name.toLowerCase().includes('react') || skill.name.toLowerCase().includes('javascript') || skill.name.toLowerCase().includes('sql') ? (
                             <button
                               onClick={() => navigate('/student/assessments')}
-                              className="text-[10px] font-semibold text-brand-blue hover:text-cyan-300 flex items-center gap-0.5 cursor-pointer"
+                              className="text-[10px] font-semibold text-sky-400 hover:text-cyan-300 flex items-center gap-0.5 cursor-pointer"
                             >
                               Verify <ExternalLink className="h-2.5 w-2.5" />
                             </button>
@@ -250,16 +290,15 @@ export default function Roadmap() {
         })}
       </div>
 
-      {/* Cross-feature CTA card */}
       <ScrollReveal variant="fade" delay={0.2}>
-        <div className="p-6 rounded-2xl border border-brand-blue/20 bg-gradient-to-r from-brand-blue/10 via-obsidian-900 to-brand-violet/10 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="p-6 rounded-2xl border border-sky-500/20 bg-gradient-to-r from-sky-500/10 via-obsidian-900 to-purple-500/10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-1 max-w-xl">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-brand-blue" />
+              <Sparkles className="h-4 w-4 text-sky-400" />
               Accelerate with Skill Assessments & AI Mock Practice
             </h3>
             <p className="text-xs text-gray-400">
-              Pass quick 12-minute technical quizzes to earn verified badges that recruiters see on your candidate profile.
+              Pass quick technical quizzes to earn verified badges that recruiters see on your candidate profile.
             </p>
           </div>
           <div className="flex items-center gap-3 shrink-0">
