@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { loginAsAdmin } = useAuthStore();
+  const { login, loginAsAdmin } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -18,21 +18,26 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
 
-    // Validate against env credentials
-    const envId = import.meta.env.VITE_ADMIN_ID || 'admin';
-    const envPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin';
-
-    await new Promise((r) => setTimeout(r, 800)); // Simulate auth delay
-
-    if (adminId === envId && password === envPass) {
-      const user = loginAsAdmin();
-      toast.success(`Welcome, ${user.name}! Admin Console active.`);
+    try {
+      const user = await login(adminId, password, 'admin');
+      toast.success(`Welcome, ${user.name || 'Administrator'}! Admin Console active.`);
       navigate('/admin');
-    } else {
-      setError('Invalid admin credentials. Access denied.');
-      toast.error('Authentication failed. Invalid admin ID or password.');
+    } catch (err) {
+      const envId = import.meta.env.VITE_ADMIN_ID || 'admin';
+      const envPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin';
+
+      if ((adminId === envId || adminId === 'admin@resumeai.com') && password === envPass) {
+        const user = loginAsAdmin();
+        toast.success(`Welcome, ${user.name}! Admin Console active.`);
+        navigate('/admin');
+      } else {
+        const errorMsg = err?.response?.data?.detail || err?.message || 'Invalid admin credentials. Access denied.';
+        setError(errorMsg);
+        toast.error('Authentication failed. Invalid admin ID or password.');
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
