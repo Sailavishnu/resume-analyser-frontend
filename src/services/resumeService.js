@@ -17,17 +17,12 @@ export const resumeService = {
    * @param {string} slot - 'primary' or 'secondary'
    * @param {string|null} studentId - Optional student ID
    */
-  uploadResume: async (file, slot = 'primary', studentId = null) => {
+  uploadResume: async (file, slot = 'primary') => {
     const formData = new FormData();
     formData.append('file', file);
 
-    const params = { slot };
-    if (studentId) {
-      params.student_id = studentId;
-    }
-
     const response = await apiClient.post('/resumes/upload', formData, {
-      params,
+      params: { slot },
     });
 
     return response.data?.data || response.data;
@@ -36,26 +31,16 @@ export const resumeService = {
   /**
    * Fetch all real resumes for student from MongoDB
    */
-  getStudentResumes: async (studentId = null) => {
-    const params = {};
-    if (studentId) {
-      params.student_id = studentId;
-    }
-
-    const response = await apiClient.get('/resumes', { params });
+  getStudentResumes: async () => {
+    const response = await apiClient.get('/resumes');
     return response.data?.data || response.data || [];
   },
 
   /**
    * Update resume slot (primary / secondary)
    */
-  setSlot: async (resumeId, slot, studentId = null) => {
-    const params = { slot };
-    if (studentId) {
-      params.student_id = studentId;
-    }
-
-    const response = await apiClient.patch(`/resumes/${resumeId}/slot`, null, { params });
+  setSlot: async (resumeId, slot) => {
+    const response = await apiClient.patch(`/resumes/${resumeId}/slot`, null, { params: { slot } });
     return response.data?.data || response.data;
   },
 
@@ -65,5 +50,28 @@ export const resumeService = {
   deleteResume: async (resumeId) => {
     const response = await apiClient.delete(`/resumes/${resumeId}`);
     return response.data?.data || response.data || true;
+  },
+
+  generateEnhancements: async (resumeId, targetRole) => {
+    const response = await apiClient.post(`/resumes/${resumeId}/enhancements`, { target_role: targetRole });
+    return response.data?.data || [];
+  },
+
+  getEnhancements: async (resumeId) => {
+    const response = await apiClient.get(`/resumes/${resumeId}/improvements`);
+    return response.data?.data || [];
+  },
+
+  updateEnhancementStatus: async (improvementId, status) => {
+    const response = await apiClient.patch(`/resumes/improvements/${improvementId}`, { status });
+    return response.data?.data || response.data;
+  },
+
+  compareWithJobDescription: async (resumeId, jobDescription) => {
+    const response = await apiClient.post('/jd-match/resume', {
+      resume_id: resumeId,
+      job_description: jobDescription,
+    });
+    return response.data?.data || response.data;
   },
 };

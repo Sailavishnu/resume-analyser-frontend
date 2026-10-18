@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login, loginAsAdmin } = useAuthStore();
+  const { loginAsAdmin } = useAuthStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -19,22 +19,13 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
-      const user = await login(adminId, password, 'admin');
+      const user = await loginAsAdmin(adminId, password);
       toast.success(`Welcome, ${user.name || 'Administrator'}! Admin Console active.`);
       navigate('/admin');
     } catch (err) {
-      const envId = import.meta.env.VITE_ADMIN_ID || 'admin';
-      const envPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin';
-
-      if ((adminId === envId || adminId === 'admin@resumeai.com') && password === envPass) {
-        const user = loginAsAdmin();
-        toast.success(`Welcome, ${user.name}! Admin Console active.`);
-        navigate('/admin');
-      } else {
-        const errorMsg = err?.response?.data?.detail || err?.message || 'Invalid admin credentials. Access denied.';
-        setError(errorMsg);
-        toast.error('Authentication failed. Invalid admin ID or password.');
-      }
+      const errorMsg = err?.response?.data?.detail || err?.message || 'Invalid admin credentials. Access denied.';
+      setError(errorMsg);
+      toast.error('Authentication failed. Invalid admin ID or password.');
     } finally {
       setLoading(false);
     }

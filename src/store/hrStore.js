@@ -173,21 +173,29 @@ export const useHrStore = create((set, get) => ({
   },
 
   createCampaign: async (campaignData) => {
-    try {
-      await api.post('/hr/jobs', campaignData);
-    } catch (err) {
-      console.warn('Campaign create API fallback:', err.message);
-    }
+    const response = await api.post('/jobs/hr/jobs', {
+      title: campaignData.title,
+      description: campaignData.description,
+      location: campaignData.location,
+      work_mode: /remote/i.test(campaignData.location || '') ? 'Remote' : 'On-site',
+      matching_config: {
+        skills: campaignData.weights?.skills ?? 40,
+        experience: campaignData.weights?.experience ?? 30,
+        education: campaignData.weights?.education ?? 15,
+        projects: campaignData.weights?.formatting ?? 15,
+      },
+    });
+    const created = response.data?.data || response.data;
     const newCampaign = {
-      id: `camp-${Date.now()}`,
-      title: campaignData.title || 'Untitled Campaign',
-      department: campaignData.department || 'Engineering',
-      location: 'Remote',
+      id: created.id || created._id,
+      title: created.title || campaignData.title || 'Untitled Campaign',
+      department: created.department || campaignData.department || 'Engineering',
+      location: created.location || campaignData.location || 'Remote',
       applicantsCount: 0,
       shortlistedCount: 0,
-      status: 'Active',
-      createdDate: new Date().toISOString(),
-      description: campaignData.description || '',
+      status: created.status || 'Active',
+      createdDate: created.created_at || new Date().toISOString(),
+      description: created.description || campaignData.description || '',
       weights: { skills: 50, experience: 30, education: 10, formatting: 10 },
       targetKeywords: campaignData.targetKeywords || []
     };

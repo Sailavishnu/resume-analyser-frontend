@@ -69,7 +69,7 @@ export default function Applications() {
       [selectedApp.id]: [...(prev[selectedApp.id] || []), { date: 'Just now', text: newNote.trim() }]
     }));
     setNewNote('');
-    toast.success('Private candidate note saved');
+    toast.success('Note saved in this browser only. It is not synced to your account.');
   };
 
   return (
@@ -286,7 +286,7 @@ export default function Applications() {
             {/* Private Notes Section */}
             <div className="space-y-3 pt-4 border-t border-white/[0.08]">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                <MessageSquare className="h-3.5 w-3.5" /> Private Interview & Follow-up Notes
+                <MessageSquare className="h-3.5 w-3.5" /> Local Notes (This Browser Only)
               </h4>
 
               {/* Existing local notes */}

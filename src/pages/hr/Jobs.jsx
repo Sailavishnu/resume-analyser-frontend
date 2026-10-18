@@ -72,13 +72,19 @@ export default function Jobs() {
     setLoading(true);
     toast.loading('Analyzing JD parameters to auto-generate matching keywords...', { id: 'camp' });
 
-    await createCampaign({
-      title,
-      department: dept,
-      location,
-      description: desc,
-      weights
-    });
+    try {
+      await createCampaign({
+        title,
+        department: dept,
+        location,
+        description: desc,
+        weights
+      });
+    } catch (error) {
+      setLoading(false);
+      toast.error(error.message || 'Could not create the job posting.', { id: 'camp' });
+      return;
+    }
 
     // Reset form
     setTitle('');

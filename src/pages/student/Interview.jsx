@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useStudentStore } from '../../store/studentStore';
 import { interviewService } from '../../services/interviewService';
-import { MessageSquare, Mic, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle, FileText, AlertTriangle, BookOpen, Volume2, Activity, Zap } from 'lucide-react';
+import { MessageSquare, Play, RotateCcw, Send, Sparkles, Timer, Trophy, CheckCircle, ChevronRight, XCircle, FileText, AlertTriangle, BookOpen } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -23,14 +23,13 @@ const DOMAIN_SUGGESTIONS = [
 
 export default function Interview() {
   const { resumes, fetchResumes, interviews, activeInterview, startInterview, submitInterviewAnswer, resetInterview } = useStudentStore();
-  const [roleInput, setRoleInput] = useState('Fullstack Software Engineer');
+  const [roleInput, setRoleInput] = useState('');
   const [domainInput, setDomainInput] = useState('');
   const [answerInput, setAnswerInput] = useState('');
   const [timeLeft, setTimeLeft] = useState(120);
   const [submitting, setSubmitting] = useState(false);
   const [resumeCheck, setResumeCheck] = useState(null);
   const [showGeneralMode, setShowGeneralMode] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
 
   useEffect(() => {
     if (fetchResumes) fetchResumes();
@@ -79,22 +78,12 @@ export default function Interview() {
       return;
     }
     setSubmitting(true);
-    toast.loading('AI analyzing response structure & speech telemetry...', { id: 'int-ans' });
+    toast.loading('Evaluating your answer…', { id: 'int-ans' });
     await submitInterviewAnswer(answerInput);
     setAnswerInput('');
     setTimeLeft(120);
     setSubmitting(false);
-    toast.success('Response & Speech Telemetry checked.', { id: 'int-ans' });
-  };
-
-  const handleMicToggle = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      toast.success('Voice Recording Active: Speech telemetry & WPM meter listening...');
-    } else {
-      setIsRecording(false);
-      toast.success('Voice Recording Paused.');
-    }
+    toast.success('Answer evaluated.', { id: 'int-ans' });
   };
 
   const formatTime = (seconds) => {
@@ -103,10 +92,7 @@ export default function Interview() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Compute live WPM (Words per Minute) telemetry
   const wordCount = answerInput.trim() ? answerInput.trim().split(/\s+/).length : 0;
-  const elapsedMinutes = (120 - timeLeft) / 60 || 0.1;
-  const wpm = Math.round(wordCount / Math.max(0.1, elapsedMinutes));
 
   return (
     <div className="space-y-6 pb-12">
@@ -114,11 +100,11 @@ export default function Interview() {
       <div className="flex justify-between items-center pb-4 border-b border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold font-heading text-white">AI Technical Interview & Speech Telemetry</h1>
+            <h1 className="text-2xl font-bold font-heading text-white">AI Technical Interview Practice</h1>
             <Badge variant="purple">Live AI Feedback</Badge>
           </div>
           <p className="text-xs text-gray-400 mt-0.5">
-            Practice adaptive technical questions with real-time speech WPM, technical term hit counters, and instant AI feedback.
+            Practice adaptive technical questions and submit text answers for backend evaluation.
           </p>
         </div>
       </div>
@@ -228,23 +214,13 @@ export default function Interview() {
           </Card>
         </div>
       ) : (
-        /* Active Interview Telemetry Simulator */
+        /* Active Interview Session */
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Telemetry HUD Bar */}
-          <Card className="p-4 bg-obsidian-900 border border-purple-500/30 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className="space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Speech Pace</span>
-              <p className="text-lg font-extrabold text-purple-400 flex items-center justify-center gap-1">
-                <Activity className="h-4 w-4" /> {wpm} WPM
-              </p>
-            </div>
+          {/* Session progress */}
+          <Card className="p-4 bg-obsidian-900 border border-purple-500/30 grid grid-cols-2 gap-4 text-center">
             <div className="space-y-0.5">
               <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Words Typed</span>
               <p className="text-lg font-extrabold text-sky-400">{wordCount} Words</p>
-            </div>
-            <div className="space-y-0.5">
-              <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Confidence Index</span>
-              <p className="text-lg font-extrabold text-emerald-400">94.2% High</p>
             </div>
             <div className="space-y-0.5">
               <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Time Remaining</span>
@@ -324,20 +300,6 @@ export default function Interview() {
                   </div>
                 </div>
 
-                {/* Animated Waveform Visualizer Widget */}
-                {isRecording && (
-                  <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-between">
-                    <span className="text-xs text-purple-300 font-semibold flex items-center gap-2">
-                      <Volume2 className="h-4 w-4 animate-bounce" /> Live Audio Waveform & Speech Recognition Active
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {[12, 24, 16, 32, 20, 28, 14, 30, 18].map((h, i) => (
-                        <div key={i} className="w-1 bg-purple-400 rounded-full animate-pulse" style={{ height: `${h}px`, animationDelay: `${i * 0.1}s` }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Answer box */}
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -355,15 +317,6 @@ export default function Interview() {
 
                 {/* Control bar */}
                 <div className="flex justify-between items-center pt-3 border-t border-white/[0.06]">
-                  <Button
-                    variant={isRecording ? 'teal' : 'outline'}
-                    size="sm"
-                    onClick={handleMicToggle}
-                    icon={Mic}
-                    className="text-xs"
-                  >
-                    {isRecording ? 'Recording Active...' : 'Voice Input'}
-                  </Button>
                   <Button
                     variant="primary"
                     size="sm"

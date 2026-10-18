@@ -12,6 +12,8 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import AnimatedProgress from '../../components/ui/AnimatedProgress';
 import FileUpload from '../../components/shared/FileUpload';
+import ResumeEnhancementPanel from '../../components/shared/ResumeEnhancementPanel';
+import { resumeService } from '../../services/resumeService';
 import toast from 'react-hot-toast';
 
 export default function ResumeAnalysis() {
@@ -65,7 +67,7 @@ export default function ResumeAnalysis() {
               >
                 {resumes.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.name} ({r.isPrimary ? 'Primary' : r.slot === 'secondary' ? 'Secondary' : 'Draft'} • {r.atsScore || r.score}%)
+                    {r.name} ({r.isPrimary ? 'Primary' : r.slot === 'secondary' ? 'Secondary' : 'Draft'} • {r.atsScore ?? r.score ?? '—'}{r.atsScore != null || r.score != null ? '%' : ''})
                   </option>
                 ))}
               </select>
@@ -135,9 +137,7 @@ export default function ResumeAnalysis() {
             <JdMatchingPane resume={resume} />
           )}
 
-          {activeTab === 'enhancement' && (
-            <EnhancementPane resume={resume} />
-          )}
+          {activeTab === 'enhancement' && <ResumeEnhancementPanel resume={resume} />}
 
           {activeTab === 'compare' && (
             <VersionComparePane resumes={resumes} />
@@ -161,24 +161,45 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
   }
 
   const analysis = resume.analysis;
+  const sectionScores = analysis.sectionScores || {};
+  const keywords = analysis.keywords || { matched: [], missing: [] };
+  const atsChecks = Array.isArray(analysis.atsChecks) ? analysis.atsChecks : [];
+  const atsScore = analysis.overallScore;
+
+  if (analysis.analysisStatus === 'failed') {
+    return (
+      <Card className="p-8 text-center bg-obsidian-900 border border-rose-500/20">
+        <p className="text-sm font-semibold text-rose-300">Resume analysis failed.</p>
+        <p className="text-xs text-gray-400 mt-2">{resume.analysis_stage || 'Please upload a readable PDF or DOCX and try again.'}</p>
+      </Card>
+    );
+  }
+  if (atsScore == null) {
+    return (
+      <Card className="p-8 text-center bg-obsidian-900 border border-white/10">
+        <p className="text-sm font-semibold text-gray-300">Resume analysis is still processing.</p>
+        <p className="text-xs text-gray-500 mt-2">{resume.analysis_stage || 'Scores appear after the resume has been parsed.'}</p>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="flex flex-col items-center justify-center p-8 text-center bg-obsidian-900 border border-white/[0.08]">
           <h3 className="text-xs font-bold uppercase tracking-widest mb-6 text-gray-400">
-            Overall ATS Readiness
+            Overall ATS Compatibility
           </h3>
-          <AnimatedProgress value={analysis.overallScore} type="circle" size={140} strokeWidth={10} />
+          <AnimatedProgress value={atsScore} type="circle" size={140} strokeWidth={10} />
 
           <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-5 border-t border-white/[0.08]">
             <div>
               <p className="text-[11px] text-gray-400">Skills Match</p>
-              <p className="text-sm font-bold text-emerald-400 mt-0.5">{analysis.sectionScores.skills}%</p>
+              <p className="text-sm font-bold text-emerald-400 mt-0.5">{sectionScores.skills}%</p>
             </div>
             <div>
               <p className="text-[11px] text-gray-400">Layout & Format</p>
-              <p className="text-sm font-bold text-sky-400 mt-0.5">{analysis.sectionScores.formatting}%</p>
+              <p className="text-sm font-bold text-sky-400 mt-0.5">{sectionScores.formatting}%</p>
             </div>
           </div>
         </Card>
@@ -186,17 +207,17 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
         <Card className="lg:col-span-2 p-6 space-y-4 bg-obsidian-900 border border-white/[0.08]">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold font-heading text-white">
-              Section Performance Breakdown
+              Resume Section Health Breakdown
             </h3>
-            <span className="text-xs text-sky-400 font-semibold">4 of 4 Verified</span>
+            <span className="text-xs text-sky-400 font-semibold">Health indicators</span>
           </div>
 
           <div className="space-y-3.5">
             {[
-              { label: 'Technical & Domain Skills', value: analysis.sectionScores.skills, color: 'emerald' },
-              { label: 'Work & Project Experience', value: analysis.sectionScores.experience, color: 'blue' },
-              { label: 'Education & Certifications', value: analysis.sectionScores.education, color: 'violet' },
-              { label: 'ATS Parsable Typography & Spacing', value: analysis.sectionScores.formatting, color: 'teal' },
+              { label: 'Technical & Domain Skills', value: sectionScores.skills, color: 'emerald' },
+              { label: 'Work & Project Experience', value: sectionScores.experience, color: 'blue' },
+              { label: 'Education & Certifications', value: sectionScores.education, color: 'violet' },
+              { label: 'ATS Parsable Typography & Spacing', value: sectionScores.formatting, color: 'teal' },
             ].map((s, i) => (
               <div key={i} className="space-y-1">
                 <div className="flex justify-between text-xs font-semibold">
@@ -206,7 +227,7 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
                 <div className="h-2 rounded-full bg-obsidian-950 overflow-hidden border border-white/[0.04]">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-sky-400 to-teal-400 transition-all duration-500"
-                    style={{ width: `${s.value}%` }}
+                    style={{ width: `${s.value ?? 0}%` }}
                   />
                 </div>
               </div>
@@ -229,13 +250,14 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              Matched Keywords Found ({analysis.keywords.matched.length})
+              Matched Keywords Found ({keywords.matched.length})
             </h4>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {analysis.keywords.matched.map((k, i) => (
+            {keywords.matched.map((k, i) => (
               <Badge key={i} variant="emerald">{k}</Badge>
             ))}
+            {keywords.matched.length === 0 && <span className="text-xs text-gray-500">No job description was provided, so job-specific matches are unavailable.</span>}
           </div>
         </Card>
 
@@ -243,16 +265,36 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-rose-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">
-              Missing High-Value Keywords ({analysis.keywords.missing.length})
+              Missing High-Value Keywords ({keywords.missing.length})
             </h4>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {analysis.keywords.missing.map((k, i) => (
+            {keywords.missing.map((k, i) => (
               <Badge key={i} variant="rose">{k}</Badge>
             ))}
+            {keywords.missing.length === 0 && <span className="text-xs text-gray-500">No job-specific keyword gaps are available yet.</span>}
           </div>
         </Card>
       </div>
+
+      <Card className="p-5 space-y-4 bg-obsidian-900 border border-white/[0.08]">
+        <div>
+          <h3 className="text-sm font-bold text-white">ATS score calculation</h3>
+          <p className="text-xs text-gray-400 mt-1">The score is calculated from contact details (20 points), detected sections (25), technical keyword density (20), formatting/readability (20), and experience detail (15). It is a rule-based compatibility estimate, not a prediction of a hiring decision.</p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {atsChecks.map((check, index) => (
+            <div key={`${check.check_name}-${index}`} className="rounded-lg border border-white/[0.06] bg-obsidian-950 p-3">
+              <div className="flex justify-between gap-2 text-xs">
+                <span className="font-semibold text-gray-200">{check.check_name}</span>
+                <span className={check.passed ? 'text-emerald-400' : 'text-amber-400'}>{check.score}/{check.max_score ?? '?'}</span>
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">{check.message}</p>
+            </div>
+          ))}
+          {atsChecks.length === 0 && <p className="text-xs text-gray-500">Detailed ATS checks are not available for this saved analysis.</p>}
+        </div>
+      </Card>
     </div>
   );
 }
@@ -262,7 +304,6 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
 ══════════════════════════════════════════════════════════════════ */
 function JdMatchingPane({ resume }) {
   const [jdText, setJdText] = useState('');
-  const [targetRole, setTargetRole] = useState('Full Stack Developer');
   const [matching, setMatching] = useState(false);
   const [results, setResults] = useState(null);
 
@@ -272,25 +313,17 @@ function JdMatchingPane({ resume }) {
       return;
     }
 
+    if (!resume?.id) return toast.error('Upload a resume before matching it to a job description.');
     setMatching(true);
-    toast.loading('Scanning job description keywords against CV...', { id: 'jd' });
-    await new Promise(r => setTimeout(r, 1400));
-
-    const textLower = jdText.toLowerCase();
-    const targetKeywords = ['react', 'node.js', 'typescript', 'docker', 'aws', 'graphql', 'redis', 'sql', 'python', 'kubernetes', 'ci/cd', 'tailwind'];
-    const matched = targetKeywords.filter(k => textLower.includes(k) && (resume?.analysis?.keywords?.matched || []).some(rm => rm.toLowerCase().includes(k)));
-    const missing = targetKeywords.filter(k => textLower.includes(k) && !matched.includes(k));
-
-    const calculatedScore = Math.min(96, Math.max(45, 55 + (matched.length * 6) - (missing.length * 4)));
-
-    setResults({
-      score: calculatedScore,
-      matched: matched.length > 0 ? matched : ['React', 'JavaScript', 'SQL', 'Git'],
-      missing: missing.length > 0 ? missing : ['Docker', 'AWS', 'TypeScript', 'Redis'],
-    });
-
-    setMatching(false);
-    toast.success('JD alignment calculated!', { id: 'jd' });
+    try {
+      const match = await resumeService.compareWithJobDescription(resume.id, jdText.trim());
+      setResults(match);
+      toast.success('Job description analysis complete.');
+    } catch (error) {
+      toast.error(error.message || 'Could not analyze this job description.');
+    } finally {
+      setMatching(false);
+    }
   };
 
   return (
@@ -302,20 +335,7 @@ function JdMatchingPane({ resume }) {
               <h3 className="text-sm font-bold font-heading text-white">
                 Target Job Description
               </h3>
-              <div className="flex gap-1.5 overflow-x-auto">
-                {['Full Stack Developer', 'Frontend Engineer', 'Backend Dev'].map(preset => (
-                  <button
-                    key={preset}
-                    onClick={() => {
-                      setTargetRole(preset);
-                      setJdText(`We are looking for an exceptional ${preset}. Required skills: React, TypeScript, Node.js, REST APIs, SQL, Docker, and AWS cloud deployment.`);
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-semibold border border-white/10 bg-obsidian-950 text-gray-300 hover:border-sky-400 cursor-pointer"
-                  >
-                    Preset: {preset}
-                  </button>
-                ))}
-              </div>
+              <span className="text-[10px] text-gray-500">{resume?.name || 'No resume selected'}</span>
             </div>
 
             <textarea
@@ -333,7 +353,7 @@ function JdMatchingPane({ resume }) {
                 disabled={matching}
                 icon={SearchCode}
               >
-                {matching ? 'Calculating Match...' : 'Calculate Alignment %'}
+                {matching ? 'Analyzing...' : 'Analyze Job Description'}
               </Button>
             </div>
           </Card>
@@ -344,23 +364,24 @@ function JdMatchingPane({ resume }) {
             <Card className="p-6 space-y-5 bg-obsidian-900 border border-white/[0.08]">
               <div className="text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                  Job Description Match
+                  Resume and Job Description
                 </p>
                 <div className="text-4xl font-extrabold font-heading text-sky-400 mt-2">
-                  {results.score}%
+                  {results.skill_coverage}%
                 </div>
-                <p className="text-[11px] text-emerald-400 font-semibold mt-1">
-                  {results.score >= 75 ? 'Strong Candidate Fit' : 'Moderate Match — Address Missing Skills'}
+                <p className="text-[11px] text-gray-400 font-semibold mt-1">
+                  Skills present in JD found in resume
                 </p>
+                <p className="text-[11px] text-sky-300 mt-1">Sentence embedding similarity: {(Math.max(0, results.semantic_similarity) * 100).toFixed(1)}%</p>
               </div>
 
               <div className="space-y-3 pt-3 border-t border-white/[0.08]">
                 <div>
-                  <p className="text-xs font-bold text-emerald-400 mb-1.5 flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Matched In JD ({results.matched.length})
+                    <p className="text-xs font-bold text-emerald-400 mb-1.5 flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Matched skills ({results.matched_skills.length})
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {results.matched.map((m, i) => (
+                    {results.matched_skills.map((m, i) => (
                       <Badge key={i} variant="emerald">{m}</Badge>
                     ))}
                   </div>
@@ -371,11 +392,12 @@ function JdMatchingPane({ resume }) {
                     <AlertCircle className="h-3.5 w-3.5" /> Missing From Resume ({results.missing.length})
                   </p>
                   <div className="flex flex-wrap gap-1">
-                    {results.missing.map((m, i) => (
+                    {results.missing_skills.map((m, i) => (
                       <Badge key={i} variant="rose">{m}</Badge>
                     ))}
                   </div>
                 </div>
+                <p className="text-[10px] text-gray-500">Semantic engine: {results.embedding_engine}. Skills detected: {results.skills_found_in_job_description.length}.</p>
               </div>
             </Card>
           ) : (
@@ -383,7 +405,7 @@ function JdMatchingPane({ resume }) {
               <SearchCode className="h-8 w-8 text-sky-400/40" />
               <p className="text-xs font-semibold text-white">No Comparison Run Yet</p>
               <p className="text-[11px] text-gray-400 leading-relaxed max-w-[220px]">
-                Paste a target job posting on the left to see how your active CV scores against the recruiter's requirements.
+                Paste the actual job description to compare detected technical skills and sentence embedding similarity with this uploaded resume.
               </p>
             </Card>
           )}
@@ -396,83 +418,6 @@ function JdMatchingPane({ resume }) {
 /* ══════════════════════════════════════════════════════════════════
    AI BULLET ENHANCEMENT PANE
 ══════════════════════════════════════════════════════════════════ */
-function EnhancementPane({ resume }) {
-  const [copiedIdx, setCopiedIdx] = useState(null);
-
-  const bulletOptimizations = [
-    {
-      original: "Worked on frontend features using React and fixed bugs.",
-      enhanced: "Architected 12+ reusable React UI components with TypeScript, slashing page render latency by 34% and resolving 40+ production bug tickets.",
-      gain: "+18 ATS points",
-      metric: "Latency reduction & component scale",
-    },
-    {
-      original: "Handled database queries and backend APIs with Node.js.",
-      enhanced: "Designed and documented 15 RESTful endpoints in Node.js/Express with MongoDB indexing, supporting 25,000+ daily requests with 99.9% uptime.",
-      gain: "+22 ATS points",
-      metric: "Request volume & uptime reliability",
-    },
-    {
-      original: "Responsible for testing and code reviews in our college project team.",
-      enhanced: "Spearheaded Git branching protocols and Jest test suites for a 4-person Agile squad, boosting unit test coverage to 82% ahead of release.",
-      gain: "+15 ATS points",
-      metric: "Test coverage & team leadership",
-    },
-  ];
-
-  const handleCopy = (text, idx) => {
-    navigator.clipboard?.writeText(text);
-    setCopiedIdx(idx);
-    toast.success('Enhanced bullet copied to clipboard!');
-    setTimeout(() => setCopiedIdx(null), 1500);
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-500/10 flex items-center justify-between">
-        <div className="text-xs">
-          <p className="font-bold text-sky-400">AI Bullet Point Optimization Engine</p>
-          <p className="text-gray-300">
-            Weak bullets state passive duties. Strong bullets state: <strong>Action Verb + Task + Quantifiable Impact</strong>.
-          </p>
-        </div>
-        <Badge variant="blue">XYZ Formula</Badge>
-      </div>
-
-      <div className="space-y-3.5">
-        {bulletOptimizations.map((b, i) => (
-          <Card key={i} className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-400">Before (Vague / Low ATS Weight):</span>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                {b.gain}
-              </span>
-            </div>
-            <p className="text-xs text-rose-300 bg-rose-500/10 p-2.5 rounded-lg border border-rose-500/20">
-              {b.original}
-            </p>
-
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                <Sparkles className="h-3.5 w-3.5 text-purple-400" /> AI Enhanced (XYZ Metric Driven):
-              </span>
-              <button
-                onClick={() => handleCopy(b.enhanced, i)}
-                className="flex items-center gap-1 text-[11px] font-semibold text-sky-400 hover:text-sky-300 cursor-pointer"
-              >
-                {copiedIdx === i ? <><Check className="h-3 w-3" /> Copied</> : <><Copy className="h-3 w-3" /> Copy Bullet</>}
-              </button>
-            </div>
-            <p className="text-xs font-medium text-emerald-300 bg-emerald-500/10 p-3 rounded-lg border border-emerald-500/30 leading-relaxed">
-              {b.enhanced}
-            </p>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ══════════════════════════════════════════════════════════════════
    VERSION COMPARISON PANE (Side-by-Side Diff)
 ══════════════════════════════════════════════════════════════════ */
@@ -482,8 +427,17 @@ function VersionComparePane({ resumes }) {
 
   const v1 = resumes.find(r => r.id === v1Id) || resumes[0];
   const v2 = resumes.find(r => r.id === v2Id) || resumes[1] || resumes[0];
+  const skillsOf = (resume) => Object.values(resume?.parsed_data?.skills || {})
+    .filter(Array.isArray).flat().filter((skill, index, all) => all.indexOf(skill) === index);
+  const skills1 = skillsOf(v1);
+  const skills2 = skillsOf(v2);
+  const score1 = v1?.atsScore ?? null;
+  const score2 = v2?.atsScore ?? null;
+  const scoreDiff = score1 != null && score2 != null ? score2 - score1 : null;
 
-  const scoreDiff = (v2?.atsScore || v2?.score || 88) - (v1?.atsScore || v1?.score || 82);
+  if (resumes.length < 2) {
+    return <Card className="p-8 text-center text-sm text-gray-400">Upload a second resume to compare saved ATS scores and parsed skills.</Card>;
+  }
 
   return (
     <div className="space-y-6">
@@ -492,7 +446,7 @@ function VersionComparePane({ resumes }) {
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <GitCompare className="h-4 w-4 text-sky-400" /> Side-by-Side Resume Version Comparator
           </h3>
-          <p className="text-xs text-gray-400">Select any two CV slots to compare ATS improvements side-by-side.</p>
+          <p className="text-xs text-gray-400">This comparison uses the ATS scores and skills parsed from each uploaded resume.</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -502,7 +456,7 @@ function VersionComparePane({ resumes }) {
             className="bg-obsidian-950 border border-white/10 text-xs text-white rounded-lg p-2"
           >
             {resumes.map(r => (
-              <option key={r.id} value={r.id}>Base: {r.name} ({r.atsScore || r.score}%)</option>
+              <option key={r.id} value={r.id}>Base: {r.name} ({r.atsScore ?? '—'}%)</option>
             ))}
           </select>
 
@@ -514,7 +468,7 @@ function VersionComparePane({ resumes }) {
             className="bg-obsidian-950 border border-white/10 text-xs text-white rounded-lg p-2"
           >
             {resumes.map(r => (
-              <option key={r.id} value={r.id}>Compare: {r.name} ({r.atsScore || r.score}%)</option>
+              <option key={r.id} value={r.id}>Compare: {r.name} ({r.atsScore ?? '—'}%)</option>
             ))}
           </select>
         </div>
@@ -529,19 +483,19 @@ function VersionComparePane({ resumes }) {
               <h4 className="text-base font-bold text-white mt-1">{v1?.name}</h4>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-extrabold text-white">{v1?.atsScore || v1?.score || 82}%</span>
+              <span className="text-2xl font-extrabold text-white">{score1 == null ? '—' : `${score1}%`}</span>
               <p className="text-[10px] text-gray-400">ATS Score</p>
             </div>
           </div>
 
           <div className="space-y-3 text-xs">
-            <p className="text-gray-400">Target Role: <strong className="text-white">{v1?.targetRole || 'Fullstack Engineer'}</strong></p>
-            <p className="text-gray-400">Matched Keywords: <strong className="text-emerald-400">{(v1?.analysis?.keywords?.matched || ['React', 'JavaScript', 'SQL']).length} Found</strong></p>
+            <p className="text-gray-400">Parsed skills: <strong className="text-emerald-400">{skills1.length}</strong></p>
 
             <div className="flex flex-wrap gap-1">
-              {(v1?.analysis?.keywords?.matched || ['React', 'JavaScript', 'SQL']).map(k => (
+              {skills1.map(k => (
                 <span key={k} className="px-2 py-0.5 rounded bg-white/[0.04] text-gray-300 text-[10px]">{k}</span>
               ))}
+              {!skills1.length && <span className="text-[10px] text-gray-500">No skills were parsed.</span>}
             </div>
           </div>
         </Card>
@@ -554,21 +508,21 @@ function VersionComparePane({ resumes }) {
               <h4 className="text-base font-bold text-white mt-1">{v2?.name}</h4>
             </div>
             <div className="text-right">
-              <span className="text-2xl font-extrabold text-teal-400">{v2?.atsScore || v2?.score || 88}%</span>
+              <span className="text-2xl font-extrabold text-teal-400">{score2 == null ? '—' : `${score2}%`}</span>
               <p className={`text-[10px] font-bold ${scoreDiff >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {scoreDiff >= 0 ? `+${scoreDiff}% Improvement` : `${scoreDiff}% Regression`}
+                {scoreDiff == null ? 'Score delta unavailable' : scoreDiff >= 0 ? `+${scoreDiff} points` : `${scoreDiff} points`}
               </p>
             </div>
           </div>
 
           <div className="space-y-3 text-xs">
-            <p className="text-gray-400">Target Role: <strong className="text-white">{v2?.targetRole || 'Fullstack Engineer'}</strong></p>
-            <p className="text-gray-400">Matched Keywords: <strong className="text-emerald-400">{(v2?.analysis?.keywords?.matched || ['React', 'JavaScript', 'Node.js', 'SQL', 'TypeScript']).length} Found</strong></p>
+            <p className="text-gray-400">Parsed skills: <strong className="text-emerald-400">{skills2.length}</strong></p>
 
             <div className="flex flex-wrap gap-1">
-              {(v2?.analysis?.keywords?.matched || ['React', 'JavaScript', 'Node.js', 'SQL', 'TypeScript']).map(k => (
+              {skills2.map(k => (
                 <span key={k} className="px-2 py-0.5 rounded bg-teal-500/15 text-teal-300 border border-teal-500/30 text-[10px]">{k}</span>
               ))}
+              {!skills2.length && <span className="text-[10px] text-gray-500">No skills were parsed.</span>}
             </div>
           </div>
         </Card>

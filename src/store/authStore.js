@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import apiClient from '../services/apiClient';
 
-const DEFAULT_AVATARS = {
-  student: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-  hr: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-  admin: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-};
+const DEFAULT_AVATARS = {};
 
 const getStoredUser = () => {
   try {
@@ -37,8 +33,9 @@ export const useAuthStore = create((set, get) => ({
           name: u.full_name,
           email: u.email,
           role: u.role,
-          avatar: DEFAULT_AVATARS[u.role] || DEFAULT_AVATARS.student,
-          skills: u.role === 'student' ? ['React', 'JavaScript', 'Python', 'FastAPI'] : ['Recruitment', 'ATS'],
+          avatar: u.avatar_url || null,
+          title: u.title || null,
+          skills: Array.isArray(u.skills) ? u.skills : [],
         };
         localStorage.setItem('user', JSON.stringify(updatedUser));
         set({ user: updatedUser, token });
@@ -71,8 +68,8 @@ export const useAuthStore = create((set, get) => ({
         email: email,
         role: userRole,
         avatar: DEFAULT_AVATARS[userRole] || DEFAULT_AVATARS.student,
-        title: userRole === 'hr' ? 'Technical Recruiter' : 'Software Engineer Candidate',
-        skills: userRole === 'hr' ? ['Talent Sourcing', 'ATS Screening'] : ['React', 'JavaScript', 'Python'],
+        title: authData.title || null,
+        skills: Array.isArray(authData.skills) ? authData.skills : [],
       };
 
       localStorage.setItem('user', JSON.stringify(user));
@@ -85,19 +82,29 @@ export const useAuthStore = create((set, get) => ({
   },
 
   // Admin login
-  loginAsAdmin: () => {
-    const adminUser = {
-      id: 'admin-1',
-      name: 'Suresh Kannan',
-      email: 'suresh.admin@careerhub.edu',
-      role: 'admin',
-      avatar: DEFAULT_AVATARS.admin,
-      title: 'Chief Platform Administrator',
-      skills: ['System Health', 'User Moderation', 'AI Model Routing'],
-    };
-    localStorage.setItem('user', JSON.stringify(adminUser));
-    set({ user: adminUser, loading: false });
-    return adminUser;
+  loginAsAdmin: async (adminId, password) => {
+    set({ loading: true });
+    try {
+      const response = await apiClient.post('/auth/admin-login', { admin_id: adminId, password });
+      const authData = response.data?.data || response.data;
+      const user = {
+        id: authData.user_id,
+        name: authData.full_name,
+        email: 'admin@resumeai.com',
+        role: 'admin',
+        avatar: DEFAULT_AVATARS.admin,
+        title: authData.title || null,
+        skills: Array.isArray(authData.skills) ? authData.skills : [],
+      };
+      localStorage.setItem('access_token', authData.access_token);
+      if (authData.refresh_token) localStorage.setItem('refresh_token', authData.refresh_token);
+      localStorage.setItem('user', JSON.stringify(user));
+      set({ user, token: authData.access_token, loading: false });
+      return user;
+    } catch (error) {
+      set({ loading: false });
+      throw error;
+    }
   },
 
   // Sign up with backend API
@@ -126,8 +133,8 @@ export const useAuthStore = create((set, get) => ({
         email: email,
         role: authData.role || role,
         avatar: DEFAULT_AVATARS[authData.role || role] || DEFAULT_AVATARS.student,
-        title: role === 'hr' ? 'Technical Recruiter' : 'Software Engineer Candidate',
-        skills: role === 'hr' ? ['Talent Sourcing', 'ATS Screening'] : ['React', 'JavaScript', 'Python'],
+        title: authData.title || null,
+        skills: Array.isArray(authData.skills) ? authData.skills : [],
       };
 
       localStorage.setItem('user', JSON.stringify(user));
