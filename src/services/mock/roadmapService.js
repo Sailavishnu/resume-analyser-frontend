@@ -56,7 +56,7 @@ const defaultRoadmaps = {
       {
         id: 'p5',
         title: 'Phase 5: Technical & System Design Interviews',
-        desc: 'Frontend system design, LeetCode data structures, behavioral questions',
+        desc: 'Frontend system design, data structures and algorithms, behavioral questions',
         status: 'not_started',
         skills: [
           { id: 's12', name: 'DSA in JavaScript', completed: true },

@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 // Always-loaded layout shell (small & critical)
@@ -21,16 +21,9 @@ const ResumeAnalysis      = lazy(() => import('../pages/student/Analysis'));
 const StudentRoadmap      = lazy(() => import('../pages/student/Roadmap'));
 const CareerNavigator     = lazy(() => import('../pages/student/CareerNavigator'));
 const StudentAssessments  = lazy(() => import('../pages/student/Assessments'));
+const StudentPractice     = lazy(() => import('../pages/student/Practice'));
 const AiMockInterview     = lazy(() => import('../pages/student/Interview'));
 
-// Coding Platform
-const CodingDashboard     = lazy(() => import('../pages/student/Coding'));
-const CodingProblems      = lazy(() => import('../pages/student/CodingProblems'));
-const CodingProblem       = lazy(() => import('../pages/student/CodingProblem'));
-const CodingProfile       = lazy(() => import('../pages/student/CodingProfile'));
-const CodingLeaderboard   = lazy(() => import('../pages/student/CodingLeaderboard'));
-const CodingSubmissions   = lazy(() => import('../pages/student/CodingSubmissions'));
-const CodingAchievements  = lazy(() => import('../pages/student/CodingAchievements'));
 const StudentApplications = lazy(() => import('../pages/student/Applications'));
 const StudentResources    = lazy(() => import('../pages/student/Resources'));
 const StudentNotifications= lazy(() => import('../pages/student/Notifications'));
@@ -105,13 +98,7 @@ export default function AppRoutes() {
           <Route path="roadmap" element={<StudentRoadmap />} />
           <Route path="career-navigator" element={<CareerNavigator />} />
           <Route path="assessments" element={<StudentAssessments />} />
-          <Route path="coding" element={<CodingDashboard />} />
-          <Route path="coding/problems" element={<CodingProblems />} />
-          <Route path="coding/problems/:problemId" element={<CodingProblem />} />
-          <Route path="coding/profile" element={<CodingProfile />} />
-          <Route path="coding/leaderboard" element={<CodingLeaderboard />} />
-          <Route path="coding/submissions" element={<CodingSubmissions />} />
-          <Route path="coding/achievements" element={<CodingAchievements />} />
+          <Route path="practice" element={<StudentPractice />} />
           <Route path="messages" element={<Messages />} />
           <Route path="interview" element={<AiMockInterview />} />
           <Route path="applications" element={<StudentApplications />} />

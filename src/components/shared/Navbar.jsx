@@ -4,11 +4,15 @@ import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { Menu, Bell, Search, LogOut, ChevronDown, User, Settings, Sun, Moon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useNotificationStore } from '../../store/notificationStore';
 
 export default function Navbar({ onMobileMenuToggle }) {
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
+  const notifications = useNotificationStore(s => s.notifications);
+  const dismissNotification = useNotificationStore(s => s.dismiss);
+  const dismissAllNotifications = useNotificationStore(s => s.dismissAll);
 
   const [showNotif,    setShowNotif]    = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -93,7 +97,7 @@ export default function Navbar({ onMobileMenuToggle }) {
             aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-brand-rose animate-pulse" />
+            {notifications.length > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-brand-rose text-white text-[9px] flex items-center justify-center">{notifications.length > 99 ? '99+' : notifications.length}</span>}
           </button>
 
           {showNotif && (
@@ -106,16 +110,16 @@ export default function Navbar({ onMobileMenuToggle }) {
                 style={{ borderColor: 'var(--border-faint)' }}
               >
                 <span className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Notifications</span>
-                <button className="text-[10px] text-brand-blue hover:underline font-medium">Mark all read</button>
+                <button onClick={dismissAllNotifications} className="text-[10px] text-brand-blue hover:underline font-medium">Clear all</button>
               </div>
 
               <div className="p-2 max-h-72 overflow-y-auto space-y-0.5">
-                {[
-                  { title: 'AI Resume Analysis Complete', body: 'Your resume scored 84% — view suggestions.',   dot: '#3b82f6' },
-                  { title: 'New Recruiter Message',       body: 'Karthik Kumar from Zoho sent you a message.', dot: '#10b981' },
-                  { title: 'Mock Interview Ready',        body: 'Practice your tailored technical round.',      dot: '#8b5cf6' },
-                ].map((n, i) => (
-                  <NotifItem key={i} {...n} />
+                {notifications.length === 0 ? <p className="p-4 text-center text-xs" style={{ color: 'var(--text-muted)' }}>You are all caught up.</p> : notifications.slice(0, 10).map(n => (
+                  <NotifItem key={n.id} title={n.title} body={n.message} onClick={() => {
+                    dismissNotification(n.id);
+                    setShowNotif(false);
+                    navigate(n.action_url || `/${user?.role || 'student'}/notifications`);
+                  }} />
                 ))}
               </div>
             </div>
@@ -187,7 +191,7 @@ export default function Navbar({ onMobileMenuToggle }) {
   );
 }
 
-function NotifItem({ title, body, dot }) {
+function NotifItem({ title, body, onClick }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -195,8 +199,9 @@ function NotifItem({ title, body, dot }) {
       style={{ background: hovered ? 'var(--nav-hover-bg)' : 'transparent' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
     >
-      <span className="mt-1.5 h-2 w-2 rounded-full shrink-0" style={{ background: dot }} />
+      <span className="mt-1.5 h-2 w-2 rounded-full shrink-0 bg-brand-blue" />
       <div>
         <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</p>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{body}</p>

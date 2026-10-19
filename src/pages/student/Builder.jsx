@@ -10,6 +10,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import toast from 'react-hot-toast';
+import apiClient from '../../services/apiClient';
 
 const SAMPLE_RESUME_DATA = {
   fullName: 'Saila Vishnu G',
@@ -90,7 +91,6 @@ const SAMPLE_RESUME_DATA = {
 export default function Builder() {
   const [step, setStep] = useState(1);
   const [cvData, setCvData] = useState(SAMPLE_RESUME_DATA);
-  const [saving, setSaving] = useState(false);
 
   const steps = [
     { id: 1, name: 'Contact & Summary', icon: User },
@@ -256,15 +256,22 @@ export default function Builder() {
     toast.success('Loaded high-scoring ATS template (Saila Vishnu G).');
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleSaveDraft = async () => {
-    setSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    setSaving(false);
-    toast.success('CV draft saved successfully.');
+  const handlePrint = async () => {
+    const toastId = toast.loading('Creating your PDF…');
+    try {
+      const response = await apiClient.post('/resumes/builder/export-pdf', { resume: cvData }, { responseType: 'blob' });
+      const blobUrl = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${(cvData.fullName || 'Resume').trim().replace(/[^a-z0-9_-]+/gi, '_')}_Resume.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      toast.success('Resume PDF downloaded.', { id: toastId });
+    } catch (error) {
+      toast.error(error.message || 'Could not create the resume PDF.', { id: toastId });
+    }
   };
 
   return (
@@ -290,11 +297,8 @@ export default function Builder() {
           <Button variant="ghost" size="sm" onClick={handleLoadSample} icon={RotateCcw} className="text-xs">
             Reset to Sample Template
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleSaveDraft} loading={saving} className="text-xs">
-            Save Draft
-          </Button>
           <Button variant="primary" size="sm" onClick={handlePrint} icon={Printer} className="text-xs">
-            Export / Print PDF
+            Download PDF
           </Button>
         </div>
       </div>
@@ -723,7 +727,7 @@ export default function Builder() {
                   icon={Printer}
                   className="text-xs"
                 >
-                  Print / Export PDF
+                  Download PDF
                 </Button>
               )}
             </div>

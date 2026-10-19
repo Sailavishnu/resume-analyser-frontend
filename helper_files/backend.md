@@ -1853,7 +1853,7 @@ Calculate streak from meaningful activity dates.
 
 Keep only the simple streak.
 
-Do not add XP, badges, leaderboards or other gamification.
+Keep activity tracking focused on a simple streak; do not add gamification features.
 
 ---
 

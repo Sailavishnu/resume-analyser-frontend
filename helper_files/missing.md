@@ -59,17 +59,7 @@ The current HR job creation flow is sufficient. Keep the existing job-descriptio
 
 ### Do not add full gamification
 
-Do not add:
-
-- XP
-- points
-- leaderboards
-- badges
-- levels
-- achievement collections
-- reward systems
-- coins
-- competitive rankings
+Do not add gamification features.
 
 Keep **only a simple activity streak** on the student dashboard/profile where appropriate.
 

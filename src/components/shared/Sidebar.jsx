@@ -3,9 +3,9 @@ import { NavLink, Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import {
   LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
-  BookOpen, User, Settings, Users, Calendar, LineChart, Building,
-  GraduationCap, SearchCode, Shield, FileCheck, Sliders, Activity,
-  Compass, Award, Layers, Brain, ShieldCheck, Cpu, Server, Target
+  BookOpen, User, Users, Calendar, LineChart, Building,
+  GraduationCap, FileCheck, Sliders,
+  Compass, Award, Layers, Brain, ShieldCheck, Cpu, Server, Target, BookOpenCheck
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
@@ -23,6 +23,7 @@ export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSideb
     { name: 'Career Roadmap',     to: '/student/roadmap',          icon: Compass },
     { name: 'Career Navigator',   to: '/student/career-navigator', icon: Target },
     { name: 'Skill Assessments',  to: '/student/assessments',      icon: Award },
+    { name: 'Practice',           to: '/student/practice',         icon: BookOpenCheck },
     { name: 'Applications',       to: '/student/applications',     icon: Briefcase },
     { name: 'Messages',           to: '/student/messages',         icon: MessageSquare },
     { name: 'AI Interview',       to: '/student/interview',        icon: BookOpen },

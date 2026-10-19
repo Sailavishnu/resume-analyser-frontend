@@ -190,13 +190,12 @@ export const RESUME_GUIDE = {
       icon: '🏆',
       required: false,
       order: 7,
-      what: 'Competitive coding ranks, hackathon placements, relevant certifications, paper publications. Quality over quantity.',
+      what: 'Hackathon placements, relevant certifications, paper publications, and technical competition awards. Quality over quantity.',
       dos: [
-        'Coding ratings: include if LeetCode 1500+, CodeChef/Codeforces 1400+ (Specialist) or better.',
         'Always state rank out of total participants for competitions: "Top 5% of 3,200 teams."',
         'Only add certifications from recognized platforms: AWS, Google, Microsoft, Coursera (accredited courses), NPTEL.',
         'For publications: title + conference/journal name + year. No need for full citation.',
-        'Order by impact: hackathon wins > competitive coding ranks > certifications.',
+        'Order by impact: hackathon wins > technical competition awards > certifications.',
       ],
       donts: [
         'No participation certificates — only placements or wins.',
@@ -206,7 +205,7 @@ export const RESUME_GUIDE = {
         'Don\'t add a certification just to pad the section — recruiters can tell.',
       ],
       example: {
-        good: '• LeetCode: 1,650 rating | 350+ problems solved (Top 10% globally)\n• Smart India Hackathon 2024 — National Finalist (Top 10 / 4,500+ teams)\n• AWS Certified Cloud Practitioner — Amazon Web Services, 2024\n• NPTEL: Data Structures & Algorithms — Elite + Gold (Score: 91/100)',
+        good: '• Smart India Hackathon 2024 — National Finalist (Top 10 / 4,500+ teams)\n• AWS Certified Cloud Practitioner — Amazon Web Services, 2024\n• NPTEL: Data Structures & Algorithms — Elite + Gold (Score: 91/100)',
         bad: '• Participated in college techfest 2022\n• Completed Python for Beginners on Udemy\n• Certificate of Participation — TCS CodeVita 2023\n• Microsoft Office Specialist — Excel 2019',
       },
     },
@@ -608,7 +607,7 @@ export const RESUME_GUIDE = {
       strong: [
         'Final-year CSE student with hands-on full-stack experience (React, Node.js, MongoDB). Built and shipped a placement prep platform serving 200+ active users. Seeking an SDE role where I can contribute to production systems from day one.',
         'Data engineering fresher with Python, SQL, and Spark skills developed through a 3-month internship at a fintech startup. Reduced ETL pipeline runtime by 35% through partition optimization. Targeting a data engineering or analytics engineering role.',
-        'Computer Science graduate with a 91% accuracy ML classifier (BERT fine-tuning) as a final year project and 1,650 LeetCode rating. Strong in algorithms, Python, and NLP. Seeking a backend or ML engineering role at a product-focused team.',
+        'Computer Science graduate with a 91% accuracy ML classifier (BERT fine-tuning) as a final year project. Strong in algorithms, Python, and NLP. Seeking a backend or ML engineering role at a product-focused team.',
       ],
       weak: [
         'Objective: To work in a reputed organization where I can use my skills and contribute to team success while learning and growing as a professional.',

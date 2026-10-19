@@ -10,6 +10,8 @@ import { useAuthStore } from '../../store/authStore';
 import { useUsersStore } from '../../store/usersStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { getCompanyColor } from '../../utils/uiMeta';
+import apiClient from '../../services/apiClient';
+import toast from 'react-hot-toast';
 
 const EMPTY_MESSAGES = [];
 const UNSEND_WINDOW_MS = 60 * 60 * 1000;
@@ -64,11 +66,11 @@ function getConversationMeta(conv, myId, lookupUser) {
     };
   }
   const peerId = conv.peerId ?? (conv.participants || []).find(id => String(id) !== String(myId));
-  const peer = lookupUser ? lookupUser(peerId) : null;
+  const peer = (lookupUser ? lookupUser(peerId) : null) || conv.peer || null;
   return {
     title: peer?.name || 'Recruitment Chat',
-    subtitle: peer?.jobRole
-      ? `${peer.jobRole}${peer.company ? ` · ${peer.company}` : ''}`
+    subtitle: peer?.username
+      ? `@${peer.username} · ${peer.role === 'hr' ? 'HR' : 'Student'}`
       : (peer?.college || 'Placement Candidate'),
     color: '#6366f1',
     letter: initials(peer?.name),
@@ -119,7 +121,7 @@ function TopActionBar({ onNewChat, onOpenSettings }) {
     </div>
     <div className="flex items-center gap-2 px-4 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 border-b border-indigo-100 dark:border-indigo-900/30 text-xs text-indigo-600 dark:text-indigo-400">
       <Info size={14} className="shrink-0" />
-      <span>Official Placement & HR messaging channel. Messages are archived for placement compliance.</span>
+      <span>Message students and HR directly. New messages sync in real time.</span>
     </div>
     </>
   );
@@ -137,8 +139,10 @@ function ConversationList({ onSelect, activeId, search, setSearch }) {
     return [...conversations].sort((a, b) => {
       const aMsgs = messages[a.id] || [];
       const bMsgs = messages[b.id] || [];
-      const aTime = aMsgs.length ? new Date(aMsgs[aMsgs.length - 1].createdAt).getTime() : 0;
-      const bTime = bMsgs.length ? new Date(bMsgs[bMsgs.length - 1].createdAt).getTime() : 0;
+      const aLast = aMsgs[aMsgs.length - 1] || a.lastMessage;
+      const bLast = bMsgs[bMsgs.length - 1] || b.lastMessage;
+      const aTime = aLast ? new Date(aLast.createdAt).getTime() : 0;
+      const bTime = bLast ? new Date(bLast.createdAt).getTime() : 0;
       return bTime - aTime;
     });
   }, [conversations, messages]);
@@ -171,7 +175,7 @@ function ConversationList({ onSelect, activeId, search, setSearch }) {
           const meta = getConversationMeta(c, myId, lookupUser);
           if (!meta) return null;
           const msgs = messages[c.id] || [];
-          const last = msgs[msgs.length - 1];
+          const last = msgs[msgs.length - 1] || c.lastMessage;
           const isActive = c.id === activeId;
           const lastIsMine = last && (String(last.authorId) === String(myId) || last.authorId === 'me');
           return (
@@ -349,8 +353,7 @@ function ChatWindow({ chatId, onBack, onViewProfile }) {
 
   function handleSend() {
     if (!text.trim()) return;
-    sendMessage(chatId, text.trim());
-    setText('');
+    sendMessage(chatId, text.trim()).then(() => setText('')).catch(error => toast.error(error.message || 'Message could not be sent.'));
   }
 
   function handleDeleteConvo() {
@@ -500,7 +503,7 @@ function ChatWindow({ chatId, onBack, onViewProfile }) {
           }
           const m = item.m;
           const isMe = String(m.authorId) === String(myId) || m.authorId === 'me';
-          const author = lookupUser(m.authorId);
+          const author = lookupUser(m.authorId) || conversation?.peer;
           return (
             <div id={`msg-${m.id}`} key={item.key}>
               <MessageBubble
@@ -583,17 +586,24 @@ function HeaderMenu({ peer, onViewProfile, onBlock, onDelete }) {
 // ── New chat picker ──────────────────────────────────────────────────────────
 
 function NewChatPicker({ onClose, onPick }) {
-  const seniors = useUsersStore(s => s.seniors);
-  const peers   = useUsersStore(s => s.peers);
   const [q, setQ] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const match = (u) => {
-    const s = q.trim().toLowerCase();
-    if (!s) return true;
-    return [u.name, u.college, u.company, u.jobRole].filter(Boolean).some(v => v.toLowerCase().includes(s));
-  };
-  const sSeniors = seniors.filter(match);
-  const sPeers   = peers.filter(match);
+  useEffect(() => {
+    if (q.trim().length < 2) { setResults([]); return undefined; }
+    let alive = true;
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const { data } = await apiClient.get('/messages/users', { params: { query: q.trim() } });
+        if (alive) setResults(data.data || []);
+      } catch (error) {
+        if (alive) toast.error(error.message || 'Could not search users.');
+      } finally { if (alive) setLoading(false); }
+    }, 250);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [q]);
 
   return (
     <div onClick={onClose} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -607,26 +617,15 @@ function NewChatPicker({ onClose, onPick }) {
           <div className="relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8890A8]" />
             <input value={q} onChange={e => setQ(e.target.value)} autoFocus
-              placeholder="Search recruiters or candidates by name, college, company…"
+              placeholder="Search by username, name, or email…"
               className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#E2E6F0] dark:border-[#272A38] bg-[#F8F9FF] dark:bg-[#13131f] text-sm outline-none focus:border-indigo-500 text-[#07090f] dark:text-[#F0F2FF]" />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {sSeniors.length === 0 && sPeers.length === 0 && (
-            <div className="text-center py-12 text-xs text-[#8890A8]">No people match.</div>
-          )}
-          {sSeniors.length > 0 && (
-            <>
-              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#8890A8] bg-[#F8F9FF] dark:bg-[#0a0a14]">Recruiters & Companies</div>
-              {sSeniors.map(u => <PickerRow key={u.id} user={u} onPick={onPick} />)}
-            </>
-          )}
-          {sPeers.length > 0 && (
-            <>
-              <div className="px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-[#8890A8] bg-[#F8F9FF] dark:bg-[#0a0a14]">Placement Candidates</div>
-              {sPeers.map(u => <PickerRow key={u.id} user={u} onPick={onPick} />)}
-            </>
-          )}
+          {loading && <div className="text-center py-8 text-xs text-[#8890A8]">Searching…</div>}
+          {!loading && q.trim().length < 2 && <div className="text-center py-12 text-xs text-[#8890A8]">Enter at least 2 characters to search active students and HR users.</div>}
+          {!loading && q.trim().length >= 2 && results.length === 0 && <div className="text-center py-12 text-xs text-[#8890A8]">No users match that username or name.</div>}
+          {results.map(u => <PickerRow key={u.id} user={u} onPick={onPick} />)}
         </div>
       </div>
     </div>
@@ -646,7 +645,7 @@ function PickerRow({ user, onPick }) {
           {user.isVerified && <BadgeCheck size={12} className="text-indigo-500" />}
         </div>
         <div className="text-xs text-[#8890A8] truncate">
-          {user.jobRole ? `${user.jobRole}${user.company ? ` · ${user.company}` : ''}` : (user.college || '')}
+          @{user.username} · {user.role === 'hr' ? 'HR' : 'Student'}
         </div>
       </div>
     </button>
@@ -830,6 +829,13 @@ export default function Messages() {
   const [profile, setProfile] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const userId = useAuthStore(s => s.user?.id);
+  const syncConversations = useCommunityStore(s => s.syncConversations);
+
+  useEffect(() => {
+    syncConversations();
+  }, [userId, syncConversations]);
+
   useEffect(() => {
     const target = searchParams.get('chat');
     if (target && target !== activeChatId) {
@@ -840,8 +846,10 @@ export default function Messages() {
 
   async function handlePick(user) {
     setPickerOpen(false);
-    const id = await startDM(user.id);
-    if (id) setActiveChat(id);
+    try {
+      const id = await startDM(user.id);
+      if (id) setActiveChat(id);
+    } catch (error) { toast.error(error.message || 'Could not start conversation.'); }
   }
 
   return (

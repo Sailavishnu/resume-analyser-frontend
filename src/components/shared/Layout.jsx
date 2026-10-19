@@ -5,9 +5,14 @@ import { useAuthStore } from '../../store/authStore';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import PageTransition from './PageTransition';
+import { useNotificationStore } from '../../store/notificationStore';
+import { useCommunityStore } from '../../store/communityStore';
 
 export default function Layout() {
   const { user } = useAuthStore();
+  const syncNotifications = useNotificationStore(s => s.sync);
+  const connectSocket = useCommunityStore(s => s.connectSocket);
+  const disconnectSocket = useCommunityStore(s => s.disconnectSocket);
   const location = useLocation();
   // Mobile sidebar toggle only; desktop uses CSS hover
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -20,6 +25,19 @@ export default function Layout() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    syncNotifications(user.id);
+    const timer = setInterval(() => syncNotifications(user.id), 15000);
+    return () => clearInterval(timer);
+  }, [user?.id, syncNotifications]);
+
+  useEffect(() => {
+    if (!user?.id || !['student', 'hr'].includes(user.role)) return undefined;
+    connectSocket(user.id);
+    return () => disconnectSocket();
+  }, [user?.id, user?.role, connectSocket, disconnectSocket]);
 
   const handleNavClick = () => {
     // Put content in frosted blur preview when a menu item is clicked

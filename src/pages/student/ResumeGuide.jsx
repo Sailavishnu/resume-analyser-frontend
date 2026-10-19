@@ -796,10 +796,10 @@ function TemplatesSection({ onPreview }) {
       score: 95,
       pages: '1 Page',
       badgeVariant: 'violet',
-      description: 'Ideal for undergraduates and college freshers with highlighted capstone projects, coding profiles, hackathons, and foundational coursework.',
+      description: 'Ideal for undergraduates and college freshers with highlighted capstone projects, project portfolios, hackathons, and foundational coursework.',
       file: '/samples/fresher_entry_level_template.pdf',
       downloadName: 'Fresher_Placement_ATS_Template.pdf',
-      highlights: ['Academic & project balance', 'LeetCode/GitHub highlight links', 'Optimized for campus drives'],
+      highlights: ['Academic & project balance', 'GitHub portfolio links', 'Optimized for campus drives'],
       tags: ['B.Tech / MCA', 'DSA & OOPs', 'Internship Ready', 'Campus Placement']
     },
   ];

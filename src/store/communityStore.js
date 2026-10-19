@@ -1,251 +1,119 @@
 import { create } from 'zustand';
+import apiClient from '../services/apiClient';
+import { useNotificationStore } from './notificationStore';
+import { useUsersStore } from './usersStore';
 
-const initialConversations = [
-  {
-    id: 'c-karthik',
-    type: 'direct',
-    peerId: 'u-karthik',
-    participants: ['me', 'u-karthik'],
-    unread: 1
-  },
-  {
-    id: 'c-meenakshi',
-    type: 'direct',
-    peerId: 'u-meenakshi',
-    participants: ['me', 'u-meenakshi'],
-    unread: 0
-  },
-  {
-    id: 'c-campus-channel',
-    type: 'group',
-    name: 'campus-placement-2026',
-    company: 'Placement Cell',
-    participants: ['me', 'u-karthik', 'u-meenakshi', 'u-suresh', 'u-aakash'],
-    unread: 2
-  },
-  {
-    id: 'c-suresh',
-    type: 'direct',
-    peerId: 'u-suresh',
-    participants: ['me', 'u-suresh'],
-    unread: 0
-  }
-];
+let socket;
+let reconnectTimer;
+let connectedUser;
+const apiRoot = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/api\/v1\/?$/, '');
 
-const now = Date.now();
-const minAgo = (m) => new Date(now - m * 60 * 1000).toISOString();
-const hourAgo = (h) => new Date(now - h * 60 * 60 * 1000).toISOString();
-const dayAgo = (d) => new Date(now - d * 24 * 60 * 60 * 1000).toISOString();
-
-const initialMessages = {
-  'c-karthik': [
-    {
-      id: 'm1',
-      authorId: 'u-karthik',
-      body: 'Hello! I reviewed your profile and analyzed CV on the placement portal. Your 98% ATS score was among the top in this drive.',
-      createdAt: dayAgo(1),
-      readBy: ['me', 'u-karthik'],
-      deleted: false
-    },
-    {
-      id: 'm2',
-      authorId: 'me',
-      body: 'Thank you Karthik sir! I spent considerable time optimizing the project descriptions and quantifying the impact metrics.',
-      createdAt: hourAgo(4),
-      readBy: ['u-karthik'],
-      deleted: false
-    },
-    {
-      id: 'm3',
-      authorId: 'u-karthik',
-      body: 'That clearly shows. Are you available for a 45-minute technical discussion this Thursday at 3:00 PM?',
-      createdAt: minAgo(15),
-      readBy: [],
-      deleted: false
+function openSocket(token, onEvent) {
+  const ws = new WebSocket(`${apiRoot.replace(/^http/, 'ws')}/socket.io/?EIO=4&transport=websocket`);
+  ws.onmessage = ({ data }) => {
+    if (data.startsWith('0')) {
+      ws.send(`40${JSON.stringify({ token })}`);
+    } else if (data === '2') {
+      ws.send('3');
+    } else if (data.startsWith('42')) {
+      try {
+        const [event, payload] = JSON.parse(data.slice(2));
+        onEvent(event, payload);
+      } catch { /* Ignore malformed event frames. */ }
     }
-  ],
-  'c-meenakshi': [
-    {
-      id: 'm4',
-      authorId: 'u-meenakshi',
-      body: 'Hi, we noticed your strong background with React and Node.js. Infosys Digital is hiring for our core engineering lab.',
-      createdAt: dayAgo(2),
-      readBy: ['me', 'u-meenakshi'],
-      deleted: false
-    },
-    {
-      id: 'm5',
-      authorId: 'me',
-      body: 'Hello Meenakshi mam, thank you for reaching out! Yes, I would love to explore the opportunities.',
-      createdAt: dayAgo(1),
-      readBy: ['u-meenakshi'],
-      deleted: false
-    }
-  ],
-  'c-campus-channel': [
-    {
-      id: 'm6',
-      authorId: 'u-suresh',
-      body: 'Welcome everyone! Freshworks campus hackathon and direct interview registrations are now live on the portal.',
-      createdAt: hourAgo(6),
-      readBy: ['me', 'u-suresh'],
-      deleted: false
-    },
-    {
-      id: 'm7',
-      authorId: 'u-karthik',
-      body: 'Zoho technical shortlist round 1 will conclude tomorrow at 6 PM. Make sure your latest ATS resume is set to Primary.',
-      createdAt: minAgo(40),
-      readBy: [],
-      deleted: false
-    }
-  ],
-  'c-suresh': [
-    {
-      id: 'm8',
-      authorId: 'u-suresh',
-      body: 'Impressive work on your resume projects. Make sure to keep your GitHub pinned repositories updated.',
-      createdAt: dayAgo(3),
-      readBy: ['me', 'u-suresh'],
-      deleted: false
-    }
-  ]
-};
+  };
+  return ws;
+}
 
 export const useCommunityStore = create((set, get) => ({
-  conversations: initialConversations,
-  messages: initialMessages,
-  activeChatId: 'c-karthik',
-
-  setActiveChat: (chatId) => {
-    set(state => {
-      // Mark unread as 0 when opening chat
-      const updatedConvs = state.conversations.map(c =>
-        c.id === chatId ? { ...c, unread: 0 } : c
-      );
-      return { activeChatId: chatId, conversations: updatedConvs };
-    });
+  conversations: [], messages: {}, activeChatId: null,
+  syncConversations: async () => {
+    try {
+      const { data } = await apiClient.get('/messages/conversations');
+      set({ conversations: data.data || [] });
+      useUsersStore.getState().cacheUsers((data.data || []).map(conversation => conversation.peer));
+    } catch (error) { console.error('Could not load conversations:', error.message); }
   },
-
-  sendMessage: (chatId, body) => {
-    if (!chatId || !body) return;
-    const newMsg = {
-      id: 'm_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-      authorId: 'me',
-      body,
-      createdAt: new Date().toISOString(),
-      readBy: [],
-      deleted: false
-    };
-
-    set(state => {
-      const current = state.messages[chatId] || [];
-      return {
-        messages: {
-          ...state.messages,
-          [chatId]: [...current, newMsg]
+  connectSocket: (userId) => {
+    const token = localStorage.getItem('access_token');
+    if (!token || !userId || (socket && connectedUser === userId && socket.readyState !== WebSocket.CLOSED)) return;
+    socket?.close();
+    clearTimeout(reconnectTimer);
+    connectedUser = userId;
+    const handleEvent = (event, payload) => {
+      if (event === 'notification:new') {
+        useNotificationStore.getState().receiveNotification(payload);
+      } else if (event === 'message:new') {
+        const state = get();
+        const list = state.messages[payload.conversationId] || [];
+        if (!list.some(item => item.id === payload.id)) {
+          set({ messages: { ...state.messages, [payload.conversationId]: [...list, payload] } });
         }
-      };
-    });
-
-    // Simulate peer read receipt & realistic response after 2 seconds if direct message
-    const conv = get().conversations.find(c => c.id === chatId);
-    if (conv && conv.type === 'direct') {
-      setTimeout(() => {
-        set(state => {
-          const list = state.messages[chatId] || [];
-          const updated = list.map(m => m.id === newMsg.id ? { ...m, readBy: [conv.peerId] } : m);
-          return {
-            messages: { ...state.messages, [chatId]: updated }
-          };
-        });
-      }, 1500);
-
-      setTimeout(() => {
-        const replyMsg = {
-          id: 'm_reply_' + Date.now(),
-          authorId: conv.peerId,
-          body: 'Noted! I have updated our recruitment notes accordingly. Looking forward to speaking soon.',
-          createdAt: new Date().toISOString(),
-          readBy: ['me', conv.peerId],
-          deleted: false
-        };
-        set(state => {
-          const list = state.messages[chatId] || [];
-          return {
-            messages: { ...state.messages, [chatId]: [...list, replyMsg] }
-          };
-        });
-      }, 3500);
-    }
-  },
-
-  loadMessages: () => {},
-
-  deleteMessage: (chatId, messageId, mode) => {
-    set(state => {
-      const list = state.messages[chatId] || [];
-      const updated = list.map(m => {
-        if (m.id !== messageId) return m;
-        if (mode === 'everyone') return { ...m, deleted: true };
-        return null;
-      }).filter(Boolean);
-
-      return {
-        messages: { ...state.messages, [chatId]: updated }
-      };
-    });
-  },
-
-  hideConversation: (chatId) => {
-    set(state => ({
-      conversations: state.conversations.filter(c => c.id !== chatId),
-      activeChatId: state.activeChatId === chatId ? null : state.activeChatId
-    }));
-  },
-
-  clearAllChats: () => {
-    set({
-      conversations: [],
-      messages: {},
-      activeChatId: null
-    });
-  },
-
-  startDM: (userId) => {
-    const existing = get().conversations.find(c => c.type === 'direct' && String(c.peerId) === String(userId));
-    if (existing) {
-      get().setActiveChat(existing.id);
-      return existing.id;
-    }
-
-    const newId = 'c_dm_' + Date.now();
-    const newConv = {
-      id: newId,
-      type: 'direct',
-      peerId: userId,
-      participants: ['me', userId],
-      unread: 0
+        get().syncConversations();
+      } else if (event === 'message:deleted') {
+        set(state => ({ messages: { ...state.messages,
+          [payload.conversationId]: (state.messages[payload.conversationId] || []).map(message =>
+            message.id === payload.messageId ? { ...message, deleted: true, body: '' } : message) } }));
+      } else if (event === 'message:read') {
+        set(state => ({ messages: { ...state.messages,
+          [payload.conversationId]: (state.messages[payload.conversationId] || []).map(message =>
+            message.id === payload.messageId ? { ...message, readBy: [...new Set([...(message.readBy || []), payload.readerId])] } : message) } }));
+      }
     };
-
-    set(state => ({
-      conversations: [newConv, ...state.conversations],
-      messages: { ...state.messages, [newId]: [] },
-      activeChatId: newId
-    }));
-
-    return newId;
+    const open = () => {
+      if (connectedUser !== userId) return;
+      socket = openSocket(token, handleEvent);
+      socket.onclose = () => { reconnectTimer = setTimeout(open, 2000); };
+    };
+    open();
   },
-
-  receiveMessage: (chatId, message) => {
-    set(state => {
-      const current = state.messages[chatId] || [];
-      return {
-        messages: { ...state.messages, [chatId]: [...current, message] }
-      };
-    });
+  disconnectSocket: () => { clearTimeout(reconnectTimer); socket?.close(); socket = null; connectedUser = null; },
+  setActiveChat: async (chatId) => {
+    set({ activeChatId: chatId });
+    if (chatId) await get().loadMessages(chatId);
   },
-
-  syncConversations: () => {},
-  syncPosts: () => {}
+  loadMessages: async (chatId) => {
+    try {
+      const { data } = await apiClient.get(`/messages/conversations/${chatId}`);
+      set(state => ({ messages: { ...state.messages, [chatId]: data.data || [] },
+        conversations: state.conversations.map(c => c.id === chatId ? { ...c, unread: 0 } : c) }));
+    } catch (error) { console.error('Could not load messages:', error.message); }
+  },
+  sendMessage: async (chatId, body) => {
+    if (!chatId || !body?.trim()) return;
+    try {
+      const { data } = await apiClient.post(`/messages/conversations/${chatId}/messages`, { body: body.trim() });
+      const message = data.data;
+      set(state => {
+        const list = state.messages[chatId] || [];
+        return list.some(m => m.id === message.id) ? state : { messages: { ...state.messages, [chatId]: [...list, message] } };
+      });
+      get().syncConversations();
+    } catch (error) { throw error; }
+  },
+  deleteMessage: async (chatId, messageId, mode = 'me') => {
+    await apiClient.delete(`/messages/conversations/${chatId}/messages/${messageId}`, { params: { mode } });
+    if (mode === 'everyone') {
+      set(state => ({ messages: { ...state.messages, [chatId]: (state.messages[chatId] || []).map(m => m.id === messageId ? { ...m, deleted: true, body: '' } : m) } }));
+    } else {
+      set(state => ({ messages: { ...state.messages, [chatId]: (state.messages[chatId] || []).filter(m => m.id !== messageId) } }));
+    }
+  },
+  hideConversation: async (chatId) => {
+    await apiClient.delete(`/messages/conversations/${chatId}`);
+    set(state => ({ conversations: state.conversations.filter(c => c.id !== chatId), activeChatId: state.activeChatId === chatId ? null : state.activeChatId }));
+  },
+  clearAllChats: async () => {
+    await apiClient.delete('/messages');
+    set({ conversations: [], messages: {}, activeChatId: null });
+  },
+  startDM: async (userId) => {
+    const { data } = await apiClient.post(`/messages/conversations/${userId}`);
+    const conversation = data.data;
+    useUsersStore.getState().cacheUsers([conversation.peer]);
+    set(state => ({ conversations: [conversation, ...state.conversations.filter(c => c.id !== conversation.id)],
+      messages: { ...state.messages, [conversation.id]: state.messages[conversation.id] || [] }, activeChatId: conversation.id }));
+    return conversation.id;
+  },
+  markNotifsByTarget: () => {},
 }));
