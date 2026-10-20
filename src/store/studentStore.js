@@ -46,19 +46,12 @@ export const useStudentStore = create((set, get) => ({
   selectedResumeId: null,
   jobs: [],
   applications: [],
-  roadmap: { roleId: null, roleName: null, completionPercentage: 0, phases: [] },
-  assessments: [],
   interviews: [],
 
   // Platform Metrics
   targetRole: null,
   streak: 0,
   careerReadiness: 0,
-  readinessBreakdown: {
-    resume: 0, ats: 0, skills: 0, projects: 0,
-    assessments: 0, interview: 0, applications: 0, profile: 0
-  },
-
   analyzing: false,
   activeInterview: null,
 
@@ -146,16 +139,6 @@ export const useStudentStore = create((set, get) => ({
       targetRole: profile.target_role || null,
       streak: analytics.current_streak ?? profile.current_streak ?? 0,
       careerReadiness: analytics.career_readiness_score ?? profile.career_readiness_score ?? 0,
-      readinessBreakdown: {
-        resume: analytics.resume_health_score ?? 0,
-        ats: analytics.ats_score ?? 0,
-        skills: resumes[0]?.analysis?.sectionScores?.skills ?? 0,
-        projects: 0,
-        assessments: analytics.total_assessments ?? 0,
-        interview: analytics.total_interviews ?? 0,
-        applications: analytics.total_applications ?? applications.length,
-        profile: profile.profile_completion ?? 0,
-      },
     });
   },
 

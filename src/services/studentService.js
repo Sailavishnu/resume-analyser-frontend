@@ -29,4 +29,16 @@ export const studentService = {
     const response = await apiClient.post('/applications', { job_id: jobId, resume_id: resumeId });
     return response.data?.data || response.data;
   },
+  async getCareerRoadmap() {
+    const response = await apiClient.get('/roadmap');
+    return response.data?.data ?? null;
+  },
+  async generateCareerRoadmap(intake) {
+    const response = await apiClient.post('/roadmap/generate', intake);
+    return response.data?.data;
+  },
+  async completeCareerRoadmapPhase(phaseId) {
+    const response = await apiClient.patch(`/roadmap/phases/${encodeURIComponent(phaseId)}`, { status: 'completed' });
+    return response.data?.data;
+  },
 };

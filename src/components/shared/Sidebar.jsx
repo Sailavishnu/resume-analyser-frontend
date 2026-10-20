@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
   BookOpen, User, Users, Calendar, LineChart, Building,
   GraduationCap, FileCheck, Sliders,
-  Compass, Award, Layers, Brain, ShieldCheck, Cpu, Server, Target, BookOpenCheck
+  Compass, Layers, Brain, ShieldCheck, Cpu, Server, BookOpenCheck
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
@@ -21,8 +21,6 @@ export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSideb
     { name: 'Resume Vault',       to: '/student/resumes',          icon: Layers },
     { name: 'Resume Analysis',    to: '/student/analysis',         icon: Sparkles },
     { name: 'Career Roadmap',     to: '/student/roadmap',          icon: Compass },
-    { name: 'Career Navigator',   to: '/student/career-navigator', icon: Target },
-    { name: 'Skill Assessments',  to: '/student/assessments',      icon: Award },
     { name: 'Practice',           to: '/student/practice',         icon: BookOpenCheck },
     { name: 'Applications',       to: '/student/applications',     icon: Briefcase },
     { name: 'Messages',           to: '/student/messages',         icon: MessageSquare },

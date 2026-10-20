@@ -64,6 +64,13 @@
   --text-muted:     #667085;
   --text-faint:     #98a2b3;
 
+  /* Career roadmap map colors */
+  --roadmap-map-bg: #f8fbff;
+  --roadmap-route-muted: #cbd5e1;
+  --roadmap-route-dash: #ffffff;
+  --roadmap-label: #1e293b;
+  --roadmap-label-muted: #475569;
+
   /* Shadows — teal-tinted depth */
   --shadow-card:    0 4px 24px rgba(13, 148, 136, 0.10),
                     0 1px 4px  rgba(0, 0, 0, 0.04);
@@ -123,6 +130,12 @@
   --text-secondary: #d1d5db;
   --text-muted:     #9ca3af;
   --text-faint:     #6b7280;
+
+  --roadmap-map-bg: #0b1220;
+  --roadmap-route-muted: #334155;
+  --roadmap-route-dash: #94a3b8;
+  --roadmap-label: #f8fafc;
+  --roadmap-label-muted: #cbd5e1;
 
   --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.40),
                     0 1px 4px  rgba(0, 0, 0, 0.30);

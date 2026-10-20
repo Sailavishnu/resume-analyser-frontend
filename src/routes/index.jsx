@@ -19,8 +19,6 @@ const ResumeBuilder       = lazy(() => import('../pages/student/Builder'));
 const ResumeVault         = lazy(() => import('../pages/student/Vault'));
 const ResumeAnalysis      = lazy(() => import('../pages/student/Analysis'));
 const StudentRoadmap      = lazy(() => import('../pages/student/Roadmap'));
-const CareerNavigator     = lazy(() => import('../pages/student/CareerNavigator'));
-const StudentAssessments  = lazy(() => import('../pages/student/Assessments'));
 const StudentPractice     = lazy(() => import('../pages/student/Practice'));
 const AiMockInterview     = lazy(() => import('../pages/student/Interview'));
 
@@ -96,8 +94,6 @@ export default function AppRoutes() {
           <Route path="resumes" element={<ResumeVault />} />
           <Route path="analysis" element={<ResumeAnalysis />} />
           <Route path="roadmap" element={<StudentRoadmap />} />
-          <Route path="career-navigator" element={<CareerNavigator />} />
-          <Route path="assessments" element={<StudentAssessments />} />
           <Route path="practice" element={<StudentPractice />} />
           <Route path="messages" element={<Messages />} />
           <Route path="interview" element={<AiMockInterview />} />
