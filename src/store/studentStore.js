@@ -36,6 +36,11 @@ const normalizeResume = (resume) => {
       },
       keywords: { matched: Array.isArray(matched) ? matched : [], missing: Array.isArray(missing) ? missing : [] },
       atsChecks: rawAnalysis.ats_checks || rawAnalysis.atsChecks || [],
+      strengths: rawAnalysis.strengths || [],
+      warnings: rawAnalysis.warnings || [],
+      criticalIssues: rawAnalysis.critical_issues || rawAnalysis.criticalIssues || [],
+      recommendations: rawAnalysis.recommendations || [],
+      analysisVersion: rawAnalysis.analysis_version || rawAnalysis.analysisVersion || null,
       analysisStatus: resume.analysis_status || resume.status || 'unknown',
     },
   };

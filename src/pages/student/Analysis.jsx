@@ -161,10 +161,27 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
   }
 
   const analysis = resume.analysis;
-  const sectionScores = analysis.sectionScores || {};
   const keywords = analysis.keywords || { matched: [], missing: [] };
   const atsChecks = Array.isArray(analysis.atsChecks) ? analysis.atsChecks : [];
   const atsScore = analysis.overallScore;
+  const parsed = resume.parsed_data || {};
+  const documentQuality = parsed.document_quality || {};
+  const strengths = Array.isArray(analysis.strengths) ? analysis.strengths : [];
+  const warnings = [...(analysis.criticalIssues || []), ...(analysis.warnings || [])];
+  const recommendations = Array.isArray(analysis.recommendations) ? analysis.recommendations : [];
+  const contactCheck = atsChecks.find(check => check.check_name === 'Contact details');
+  const textCheck = atsChecks.find(check => check.check_name === 'Text available for analysis');
+  const parsedSkills = Object.entries(parsed.skills || {}).flatMap(([group, values]) =>
+    Array.isArray(values) ? values.map(value => ({ group, value })) : []
+  );
+  const parsedSections = [
+    ['Summary', parsed.summary ? 'Content parsed' : parsed.sections_detected?.summary ? 'Heading found; review text' : 'Not detected'],
+    ['Skills', parsedSkills.length ? `${parsedSkills.length} items parsed` : parsed.sections_detected?.skills ? 'Heading found; review text' : 'Not detected'],
+    ['Work experience', parsed.experience?.length ? `${parsed.experience.length} entries parsed` : parsed.sections_detected?.experience ? 'Heading found; review entries' : 'Not detected'],
+    ['Projects', parsed.projects?.length ? `${parsed.projects.length} entries parsed` : parsed.sections_detected?.projects ? 'Heading found; review entries' : 'Not detected'],
+    ['Education', parsed.education?.length ? `${parsed.education.length} entries parsed` : parsed.sections_detected?.education ? 'Heading found; review entries' : 'Not detected'],
+    ['Certifications', parsed.certifications?.length ? `${parsed.certifications.length} entries parsed` : parsed.sections_detected?.certifications ? 'Heading found; review entries' : 'Not detected'],
+  ];
 
   if (analysis.analysisStatus === 'failed') {
     return (
@@ -188,18 +205,18 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="flex flex-col items-center justify-center p-8 text-center bg-obsidian-900 border border-white/[0.08]">
           <h3 className="text-xs font-bold uppercase tracking-widest mb-6 text-gray-400">
-            Overall ATS Compatibility
+            ATS Readiness Estimate
           </h3>
           <AnimatedProgress value={atsScore} type="circle" size={140} strokeWidth={10} />
 
           <div className="grid grid-cols-2 gap-4 w-full mt-6 pt-5 border-t border-white/[0.08]">
             <div>
-              <p className="text-[11px] text-gray-400">Skills Match</p>
-              <p className="text-sm font-bold text-emerald-400 mt-0.5">{sectionScores.skills}%</p>
+              <p className="text-[11px] text-gray-400">Contact Parsing</p>
+              <p className="text-sm font-bold text-emerald-400 mt-0.5">{contactCheck ? `${contactCheck.score}/${contactCheck.max_score}` : '—'}</p>
             </div>
             <div>
-              <p className="text-[11px] text-gray-400">Layout & Format</p>
-              <p className="text-sm font-bold text-sky-400 mt-0.5">{sectionScores.formatting}%</p>
+              <p className="text-[11px] text-gray-400">Text Analyzed</p>
+              <p className="text-sm font-bold text-sky-400 mt-0.5">{textCheck ? `${textCheck.score}/${textCheck.max_score}` : '—'}</p>
             </div>
           </div>
         </Card>
@@ -207,32 +224,20 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
         <Card className="lg:col-span-2 p-6 space-y-4 bg-obsidian-900 border border-white/[0.08]">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold font-heading text-white">
-              Resume Section Health Breakdown
+              What the parser recognized
             </h3>
-            <span className="text-xs text-sky-400 font-semibold">Health indicators</span>
+            <span className="text-xs text-sky-400 font-semibold">Content presence, not a quality grade</span>
           </div>
 
-          <div className="space-y-3.5">
-            {[
-              { label: 'Technical & Domain Skills', value: sectionScores.skills, color: 'emerald' },
-              { label: 'Work & Project Experience', value: sectionScores.experience, color: 'blue' },
-              { label: 'Education & Certifications', value: sectionScores.education, color: 'violet' },
-              { label: 'ATS Parsable Typography & Spacing', value: sectionScores.formatting, color: 'teal' },
-            ].map((s, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-gray-300">{s.label}</span>
-                  <span className="text-white">{s.value}%</span>
-                </div>
-                <div className="h-2 rounded-full bg-obsidian-950 overflow-hidden border border-white/[0.04]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-sky-400 to-teal-400 transition-all duration-500"
-                    style={{ width: `${s.value ?? 0}%` }}
-                  />
-                </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {parsedSections.map(([label, status]) => (
+              <div key={label} className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-obsidian-950 px-3 py-2.5">
+                <span className="text-xs text-gray-300">{label}</span>
+                <span className={`text-[10px] font-semibold ${status.includes('parsed') ? 'text-emerald-400' : 'text-amber-300'}`}>{status}</span>
               </div>
             ))}
           </div>
+          <p className="text-[11px] text-gray-500">“Not detected” means the parser did not extract it; it does not prove the resume lacks that content.</p>
 
           <div className="pt-3 flex flex-wrap gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={onGoToJd} icon={SearchCode}>
@@ -244,6 +249,64 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
           </div>
         </Card>
       </div>
+
+      <Card className="p-5 space-y-4 bg-obsidian-900 border border-white/[0.08]">
+        <div>
+          <h3 className="text-sm font-bold text-white">Extracted resume content</h3>
+          <p className="text-[11px] text-gray-500 mt-1">Review the extracted fields for accuracy. Unrecognized content should not be treated as missing from your actual document.</p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-white/[0.07] bg-obsidian-950 p-4">
+            <h4 className="text-xs font-semibold text-white mb-2">Skills explicitly listed</h4>
+            {parsedSkills.length ? <div className="space-y-2">{Object.entries(parsed.skills || {}).filter(([, values]) => Array.isArray(values) && values.length).map(([group, values]) => <p key={group} className="text-xs text-gray-300"><span className="text-gray-500 capitalize">{group}: </span>{values.join(', ')}</p>)}</div> : <p className="text-xs text-gray-500">No items parsed from a recognized skills section.</p>}
+          </div>
+          <div className="rounded-lg border border-white/[0.07] bg-obsidian-950 p-4">
+            <h4 className="text-xs font-semibold text-white mb-2">Education & certifications</h4>
+            {parsed.education?.length ? <ul className="space-y-2 text-xs text-gray-300">{parsed.education.map((item, i) => <li key={`edu-${i}`}>{item.degree}{item.institution ? ` — ${item.institution}` : ''}{item.graduation_year ? ` (${item.graduation_year})` : ''}</li>)}</ul> : <p className="text-xs text-gray-500">No education entry was confidently parsed.</p>}
+            {parsed.certifications?.length > 0 && <ul className="mt-3 space-y-1 text-xs text-gray-300">{parsed.certifications.map((item, i) => <li key={`cert-${i}`}>{item.cert_name}{item.issuer ? ` — ${item.issuer}` : ''}</li>)}</ul>}
+          </div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[['Work experience', parsed.experience || [], item => [item.position, item.company, item.date].filter(Boolean).join(' · ')], ['Projects', parsed.projects || [], item => [item.project_name, item.date].filter(Boolean).join(' · ') ]].map(([title, entries, getTitle]) => <div key={title} className="rounded-lg border border-white/[0.07] bg-obsidian-950 p-4">
+            <h4 className="text-xs font-semibold text-white mb-2">{title}</h4>
+            {entries.length ? <ul className="space-y-3">{entries.map((item, i) => <li key={`${title}-${i}`} className="text-xs text-gray-300"><p className="font-medium">{getTitle(item) || 'Entry extracted; title not identified'}</p>{item.description && <p className="text-gray-400 mt-1">{item.description}</p>}{item.key_points?.length > 0 && <ul className="mt-1.5 ml-4 list-disc space-y-1">{item.key_points.map((point, j) => <li key={j}>{point}</li>)}</ul>}</li>)}</ul> : <p className="text-xs text-gray-500">No entries parsed from this section.</p>}
+          </div>)}
+        </div>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
+          <h3 className="text-sm font-bold text-white">What the parser found</h3>
+          <p className="text-xs text-gray-400">{documentQuality.word_count ?? 0} words · {documentQuality.non_empty_lines ?? 0} text lines · {Object.values(parsed.skills || {}).filter(Array.isArray).flat().length} listed skills</p>
+          <div className="space-y-2 text-xs text-gray-300">
+            <p><span className="text-gray-500">Name:</span> {parsed.full_name || 'Not detected'}</p>
+            <p><span className="text-gray-500">Email:</span> {parsed.email || 'Not detected'}</p>
+            <p><span className="text-gray-500">Phone:</span> {parsed.phone || 'Not detected'}</p>
+            <p><span className="text-gray-500">Experience entries:</span> {parsed.experience?.length || 0} · <span className="text-gray-500">Projects:</span> {parsed.projects?.length || 0} · <span className="text-gray-500">Education:</span> {parsed.education?.length || 0}</p>
+          </div>
+          <p className="text-[11px] text-amber-300">This report can assess extracted text only; it cannot verify visual layout, columns, fonts, or graphics.</p>
+        </Card>
+        <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
+          <h3 className="text-sm font-bold text-white">Strengths and review flags</h3>
+          {strengths.length > 0 && <ul className="space-y-1.5 text-xs text-emerald-300">{strengths.map((item, i) => <li key={`s-${i}`}>✓ {item}</li>)}</ul>}
+          {warnings.length > 0 && <ul className="space-y-1.5 text-xs text-amber-300">{warnings.map((item, i) => <li key={`w-${i}`}>• {typeof item === 'string' ? item : item.message || JSON.stringify(item)}</li>)}</ul>}
+          {strengths.length === 0 && warnings.length === 0 && <p className="text-xs text-gray-500">No additional flags were recorded.</p>}
+        </Card>
+      </div>
+
+      <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-white">Prioritized improvements</h3>
+          <span className="text-[10px] text-gray-500">Suggestions use parsed resume evidence; verify every change.</span>
+        </div>
+        {recommendations.length ? <div className="grid sm:grid-cols-2 gap-3">
+          {recommendations.map((item, i) => <div key={`${item.category}-${i}`} className="rounded-lg border border-white/[0.07] bg-obsidian-950 p-3">
+            <div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-white capitalize">{String(item.category || 'review').replaceAll('_', ' ')}</span><Badge variant={item.priority === 'high' ? 'rose' : 'blue'}>{item.priority || 'suggestion'}</Badge></div>
+            <p className="text-xs text-gray-300 mt-2">{item.suggestion}</p>
+            {item.example && <p className="text-[11px] text-gray-500 mt-1">{item.example}</p>}
+          </div>)}
+        </div> : <p className="text-xs text-gray-500">No automatic suggestions are available in this analysis.</p>}
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-5 space-y-3 bg-obsidian-900 border border-white/[0.08]">
@@ -279,8 +342,8 @@ function AtsScorecardPane({ resume, onGoToJd, onGoToEnhance }) {
 
       <Card className="p-5 space-y-4 bg-obsidian-900 border border-white/[0.08]">
         <div>
-          <h3 className="text-sm font-bold text-white">ATS score calculation</h3>
-          <p className="text-xs text-gray-400 mt-1">The score is calculated from contact details (20 points), detected sections (25), technical keyword density (20), formatting/readability (20), and experience detail (15). It is a rule-based compatibility estimate, not a prediction of a hiring decision.</p>
+          <h3 className="text-sm font-bold text-white">How this estimate is calculated</h3>
+          <p className="text-xs text-gray-400 mt-1">This product estimate totals contact parsing (15), recognized sections (25), an explicit skills list (15), text available for analysis (20), and parsed work/project detail (25). It is not a score from an employer’s ATS, a hiring prediction, or a job match. Use JD Matching for comparison with an actual job description.</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {atsChecks.map((check, index) => (
