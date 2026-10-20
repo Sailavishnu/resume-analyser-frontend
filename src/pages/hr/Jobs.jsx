@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHrStore } from '../../store/hrStore';
 import {
@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const { campaigns, createCampaign, setSelectedCampaignId } = useHrStore();
+  const { campaigns, createCampaign, setSelectedCampaignId, fetchJobs, loading: jobsLoading } = useHrStore();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +24,10 @@ export default function Jobs() {
   const [dept, setDept] = useState('Engineering');
   const [location, setLocation] = useState('Remote');
   const [desc, setDesc] = useState('');
+  const [skills, setSkills] = useState('');
+  const [preferredSkills, setPreferredSkills] = useState('');
+
+  useEffect(() => { fetchJobs().catch(error => toast.error(error.message || 'Could not load job postings')); }, [fetchJobs]);
 
   // Coordinated weights totaling exactly 100%
   const [weights, setWeights] = useState({
@@ -70,7 +74,7 @@ export default function Jobs() {
     }
 
     setLoading(true);
-    toast.loading('Analyzing JD parameters to auto-generate matching keywords...', { id: 'camp' });
+    toast.loading('Saving job posting...', { id: 'camp' });
 
     try {
       await createCampaign({
@@ -78,6 +82,8 @@ export default function Jobs() {
         department: dept,
         location,
         description: desc,
+        requiredSkills: skills.split(',').map(v => v.trim()).filter(Boolean),
+        preferredSkills: preferredSkills.split(',').map(v => v.trim()).filter(Boolean),
         weights
       });
     } catch (error) {
@@ -89,10 +95,12 @@ export default function Jobs() {
     // Reset form
     setTitle('');
     setDesc('');
+    setSkills('');
+    setPreferredSkills('');
     setWeights({ skills: 40, experience: 35, education: 15, formatting: 10 });
     setIsOpen(false);
     setLoading(false);
-    toast.success('Hiring Campaign launched successfully!', { id: 'camp' });
+    toast.success('Job posting published and visible to students.', { id: 'camp' });
   };
 
   const handleNavigateToPipeline = (campaignId) => {
@@ -107,22 +115,18 @@ export default function Jobs() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-white">Job Campaigns & ATS Weighting</h1>
-          <p className="text-xs text-gray-400">
-            Configure matching criteria and coordinated weight matrices for candidate evaluations.
-          </p>
+          <h1 className="text-2xl font-bold font-heading text-white">Job postings</h1>
+          <p className="text-xs text-gray-400">Create and manage the jobs students can apply to.</p>
         </div>
         <Button variant="teal" size="sm" onClick={() => setIsOpen(true)} icon={Plus}>
-          Launch Job Campaign
+          Launch Job
         </Button>
       </div>
 
       {/* Grid List */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {!jobsLoading && campaigns.length === 0 && <Card className="p-10 text-center text-gray-400 md:col-span-2 xl:col-span-3">No job postings yet. Select Launch Job to create your first posting.</Card>}
         {campaigns.map(camp => {
-          const shortlisted = camp.shortlistedCount || Math.floor((camp.applicantsCount || 4) / 3);
-          const interviews = Math.floor(shortlisted / 2);
-
           return (
             <Card key={camp.id} hoverEffect className="p-6 flex flex-col justify-between h-auto min-h-[280px] border border-white/[0.08] bg-obsidian-900/90">
               <div className="space-y-3">
@@ -130,7 +134,7 @@ export default function Jobs() {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-teal bg-brand-teal/10 px-2.5 py-0.5 rounded border border-brand-teal/20">
                     {camp.department}
                   </span>
-                  <Badge variant={camp.status === 'Active' ? 'success' : 'neutral'} size="sm">
+              <Badge variant={camp.status === 'active' ? 'success' : 'neutral'} size="sm">
                     {camp.status}
                   </Badge>
                 </div>
@@ -144,18 +148,10 @@ export default function Jobs() {
                 <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">{camp.description}</p>
 
                 {/* Candidate Funnel Statistics */}
-                <div className="grid grid-cols-3 gap-2 py-2 px-3 rounded-lg bg-white/[0.02] border border-white/[0.05] text-center">
+                <div className="py-2 px-3 rounded-lg bg-white/[0.02] border border-white/[0.05] text-center">
                   <div>
                     <p className="text-xs font-bold text-white">{camp.applicantsCount || 0}</p>
                     <p className="text-[9px] text-gray-500 uppercase tracking-wider">Applicants</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-emerald-400">{shortlisted}</p>
-                    <p className="text-[9px] text-gray-500 uppercase tracking-wider">Shortlisted</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-brand-teal">{interviews}</p>
-                    <p className="text-[9px] text-gray-500 uppercase tracking-wider">Interviews</p>
                   </div>
                 </div>
               </div>
@@ -188,7 +184,7 @@ export default function Jobs() {
         footerActions={
           <>
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button variant="teal" size="sm" onClick={handleLaunch} loading={loading}>Launch Campaign</Button>
+            <Button variant="teal" size="sm" onClick={handleLaunch} loading={loading}>Launch Job</Button>
           </>
         }
       >
@@ -233,6 +229,9 @@ export default function Jobs() {
             className="min-h-[120px]"
             required
           />
+
+          <Input label="Required skills (comma separated)" value={skills} onChange={e => setSkills(e.target.value)} placeholder="e.g. SQL, stakeholder communication" />
+          <Input label="Preferred skills (comma separated)" value={preferredSkills} onChange={e => setPreferredSkills(e.target.value)} placeholder="e.g. Power BI, cloud platforms" />
 
           {/* Coordinated Weights Sliders */}
           <div className="pt-3 space-y-3.5 border-t border-white/[0.08]">

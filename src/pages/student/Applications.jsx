@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStudentStore } from '../../store/studentStore';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -13,12 +13,21 @@ import {
 import toast from 'react-hot-toast';
 
 export default function Applications() {
-  const { applications } = useStudentStore();
+  const { applications, jobs, applyToJob, fetchStudentData } = useStudentStore();
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedApp, setSelectedApp] = useState(null);
   const [newNote, setNewNote] = useState('');
   const [localNotes, setLocalNotes] = useState({});
+  const [applying, setApplying] = useState(null);
+
+  useEffect(() => { fetchStudentData().catch(() => {}); }, [fetchStudentData]);
+  const handleApply = async (jobId) => {
+    setApplying(jobId);
+    try { await applyToJob(jobId); toast.success('Application submitted.'); }
+    catch (error) { toast.error(error.message || 'Could not submit application.'); }
+    finally { setApplying(null); }
+  };
 
   const pipelineStages = [
     { id: 'all', label: 'All' },
@@ -27,6 +36,7 @@ export default function Applications() {
     { id: 'Shortlisted', label: 'Shortlisted' },
     { id: 'Interview', label: 'Interview' },
     { id: 'Offer', label: 'Offer' },
+    { id: 'hired', label: 'Accepted' },
     { id: 'Rejected', label: 'Rejected' }
   ];
 
@@ -46,6 +56,8 @@ export default function Applications() {
       case 'Offer':
       case 'offer':
         return <Badge variant="success">Offer Extended</Badge>;
+      case 'hired':
+        return <Badge variant="success">Accepted</Badge>;
       case 'Rejected':
       case 'rejected':
         return <Badge variant="danger">Not Selected</Badge>;
@@ -90,6 +102,14 @@ export default function Applications() {
           </div>
         </div>
       </ScrollReveal>
+
+      <section className="space-y-3">
+        <div><h2 className="text-lg font-bold text-white">Open job postings</h2><p className="text-xs text-gray-400">Apply to jobs published by HR teams using your selected resume.</p></div>
+        {jobs.length === 0 ? <Card className="p-6 text-sm text-gray-400">No open job postings are available right now.</Card> : <div className="grid gap-4 md:grid-cols-2">{jobs.map(job => {
+          const alreadyApplied = applications.some(app => app.job_id === job.id || app.job_id === job._id);
+          return <Card key={job.id || job._id} className="space-y-3 p-5"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{job.title}</h3><p className="text-xs text-gray-400">{job.company || job.company_name || 'Company'}{job.department ? ` · ${job.department}` : ''}{job.company_industry ? ` · ${job.company_industry}` : ''}</p></div><span className="text-xs text-gray-400">{job.work_mode || job.location}</span></div><p className="line-clamp-3 text-sm text-gray-300">{job.description}</p>{job.company_description && <p className="line-clamp-2 text-xs text-gray-400">{job.company_description}</p>}<p className="text-xs text-gray-400">{job.location}{job.company_location ? ` · ${job.company_location}` : ''}{job.company_website ? ` · ${job.company_website}` : ''}</p>{job.skillsRequired?.length > 0 && <p className="text-xs text-gray-400">Skills: {job.skillsRequired.join(', ')}</p>}<Button variant="teal" size="sm" disabled={alreadyApplied || applying === (job.id || job._id)} loading={applying === (job.id || job._id)} onClick={() => handleApply(job.id || job._id)}>{alreadyApplied ? 'Applied' : 'Apply'}</Button></Card>;
+        })}</div>}
+      </section>
 
       {/* Filter panel */}
       <Card className="p-4 flex flex-col md:flex-row gap-4 items-center justify-between border border-white/[0.08] bg-obsidian-900/90">
@@ -165,24 +185,22 @@ export default function Applications() {
 
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-emerald-400">{app.matchRate || 90}%</span>
-                        <div className="w-16">
-                          <AnimatedProgress value={app.matchRate || 90} type="bar" />
-                        </div>
+                        <span className="font-bold text-emerald-400">{app.matchRate != null ? `${app.matchRate}%` : '—'}</span>
+                        {app.matchRate != null && <div className="w-16"><AnimatedProgress value={app.matchRate} type="bar" /></div>}
                       </div>
                     </td>
 
                     <td className="px-6 py-4 text-gray-300">
                       <div className="flex items-center gap-1.5 text-[11px]">
                         <FileText className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="truncate max-w-[140px]">{app.resumeUsed || 'Primary CV'}</span>
+                        <span className="truncate max-w-[140px]">{app.resumeUsed || 'Resume attached'}</span>
                       </div>
                     </td>
 
                     <td className="px-6 py-4 text-gray-400">
                       <div className="flex items-center gap-1.5 text-[11px]">
                         <Calendar className="h-3.5 w-3.5 text-gray-500" />
-                        <span>{app.appliedDate || 'Recent'}</span>
+                        <span>{app.appliedDate ? new Date(app.appliedDate).toLocaleDateString() : '—'}</span>
                       </div>
                     </td>
 
@@ -242,7 +260,7 @@ export default function Applications() {
             {/* Application Overview Badges */}
             <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
               <div>
-                <p className="text-sm font-bold text-emerald-400">{selectedApp.matchRate || 92}%</p>
+                <p className="text-sm font-bold text-emerald-400">{selectedApp.matchRate != null ? `${selectedApp.matchRate}%` : '—'}</p>
                 <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">ATS Match</p>
               </div>
               <div>
@@ -250,7 +268,7 @@ export default function Applications() {
                 <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Stage</p>
               </div>
               <div>
-                <p className="text-sm font-bold text-brand-blue">{selectedApp.appliedDate || 'Sep 2026'}</p>
+                <p className="text-sm font-bold text-brand-blue">{selectedApp.appliedDate ? new Date(selectedApp.appliedDate).toLocaleDateString() : '—'}</p>
                 <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-0.5">Submitted</p>
               </div>
             </div>
@@ -269,10 +287,7 @@ export default function Applications() {
             <div className="space-y-3">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400">Recruitment Timeline</h4>
               <div className="space-y-3 pl-2 border-l-2 border-brand-blue/30">
-                {(selectedApp.timeline || [
-                  { date: selectedApp.appliedDate, title: 'Application Submitted', desc: `Applied using ${selectedApp.resumeUsed}.` },
-                  { date: 'Next Day', title: 'ATS Check Passed', desc: 'Matched technical keywords.' }
-                ]).map((t, idx) => (
+                {(selectedApp.timeline || []).map((t, idx) => (
                   <div key={idx} className="relative pl-4">
                     <div className="absolute -left-[17px] top-1.5 h-2.5 w-2.5 rounded-full bg-brand-blue ring-4 ring-obsidian-900" />
                     <p className="text-xs font-bold text-white">{t.title}</p>
@@ -280,6 +295,7 @@ export default function Applications() {
                     <p className="text-[10px] text-gray-500 mt-0.5">{t.date}</p>
                   </div>
                 ))}
+                {!selectedApp.timeline?.length && <p className="pl-4 text-xs text-gray-500">No additional timeline events yet.</p>}
               </div>
             </div>
 

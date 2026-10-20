@@ -1,85 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import { Building, Globe, Mail, Users, Plus, ShieldCheck } from 'lucide-react';
+import api from '../../services/apiClient';
 import toast from 'react-hot-toast';
 
+const EMPTY = { company_name: '', website: '', industry: '', company_size: '', location: '', description: '', job_title: '', phone: '' };
+
 export default function Company() {
+  const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState('Cyberdyne Systems');
-  const [website, setWebsite] = useState('https://cyberdyne.com');
-
-  const team = [
-    { name: 'Marcus Vance', role: 'Lead Recruiter (Owner)', email: 'm.vance@cyberdyne.com' },
-    { name: 'Sarah Connor', role: 'Technical Interviewer', email: 's.connor@cyberdyne.com' }
-  ];
-
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const [saving, setSaving] = useState(false);
+  useEffect(() => {
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800));
-    setLoading(false);
-    toast.success('Company branding updated.');
+    api.get('/users/hr/profile').then(res => setForm({ ...EMPTY, ...(res.data?.data || {}) })).catch(e => toast.error(e.message || 'Could not load company details')).finally(() => setLoading(false));
+  }, []);
+  const update = (key, value) => setForm(current => ({ ...current, [key]: value }));
+  const save = async event => {
+    event.preventDefault(); setSaving(true);
+    try { const res = await api.patch('/users/hr/profile', form); setForm({ ...EMPTY, ...(res.data?.data || {}) }); toast.success('Company profile saved.'); }
+    catch (e) { toast.error(e.message || 'Could not save company profile.'); }
+    finally { setSaving(false); }
   };
-
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-        <div>
-          <h1 className="text-xl font-bold font-heading text-white">Company Workspace Profile</h1>
-          <p className="text-xs text-gray-400">Manage recruiter workspace settings, logos, and teammate roles.</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-        {/* Branding inputs */}
-        <div className="md:col-span-2 space-y-6">
-          <Card className="p-6">
-            <h3 className="text-sm font-bold text-white font-heading mb-4">Firm Settings</h3>
-            <form onSubmit={handleSave} className="space-y-4">
-              <Input
-                label="Company Name"
-                value={name}
-                onChange={e => setName(e.target.value)}
-              />
-              <Input
-                label="Corporate Site URL"
-                value={website}
-                onChange={e => setWebsite(e.target.value)}
-              />
-              
-              <div className="pt-2">
-                <Button type="submit" variant="teal" loading={loading}>
-                  Save Workspace details
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-
-        {/* Recruiting Team list */}
-        <Card className="p-5 space-y-4">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest flex justify-between items-center">
-            <span>Recruiting Team</span>
-            <button className="text-[10px] text-brand-teal hover:underline flex items-center gap-1"><Plus className="h-3 w-3" /> Add</button>
-          </h3>
-
-          <div className="space-y-3.5">
-            {team.map((member, i) => (
-              <div key={i} className="p-3 bg-obsidian-950/40 border border-white/[0.04] rounded-lg text-xs space-y-1">
-                <p className="font-semibold text-white flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-brand-teal" />
-                  <span>{member.name}</span>
-                </p>
-                <p className="text-[10px] text-gray-400 capitalize">{member.role}</p>
-                <p className="text-[9px] text-gray-500">{member.email}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+  const fields = [['company_name', 'Company name', true], ['website', 'Website'], ['industry', 'Industry'], ['company_size', 'Company size'], ['location', 'Location', true], ['job_title', 'Your job title'], ['phone', 'Work phone']];
+  return <div className="mx-auto max-w-3xl space-y-6">
+    <header className="border-b border-white/[0.08] pb-4"><h1 className="text-2xl font-bold text-white">Company profile</h1><p className="mt-1 text-sm text-gray-400">These details appear on job postings and help students understand the employer.</p></header>
+    <Card className="p-6"><form onSubmit={save} className="space-y-4">
+      {loading ? <p className="text-sm text-gray-400">Loading company details…</p> : <>
+        <div className="grid gap-4 sm:grid-cols-2">{fields.map(([key, label, required]) => <label key={key} className="block text-sm text-gray-300">{label}<input required={required} value={form[key] || ''} onChange={e => update(key, e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-obsidian-950 px-3 py-2 text-white focus:border-brand-teal focus:outline-none" /></label>)}</div>
+        <label className="block text-sm text-gray-300">Company overview<textarea rows={4} value={form.description || ''} onChange={e => update('description', e.target.value)} className="mt-1 w-full rounded-lg border border-white/10 bg-obsidian-950 px-3 py-2 text-white focus:border-brand-teal focus:outline-none" placeholder="What does your company do? What is its mission or product?" /></label>
+        <Button type="submit" variant="teal" loading={saving}>Save company details</Button>
+      </>}
+    </form></Card>
+  </div>;
 }
