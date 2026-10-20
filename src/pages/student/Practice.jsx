@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import apiClient from '../../services/apiClient';
 import {
-  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts';
 import {
-  ArrowLeft, ArrowRight, BriefcaseBusiness, Check, ChevronDown,
+  ArrowLeft, ArrowRight, BriefcaseBusiness, Check, ChevronDown, Code2,
   ChevronUp, CircleHelp, Clock3, FileText, LoaderCircle, RotateCcw,
 } from 'lucide-react';
 
 const ROLES = ['Backend Developer', 'Frontend Developer', 'Full Stack Developer', 'Software Engineer'];
-const TYPE_LABEL = { resume: 'Resume Building', 'job-readiness': 'Job Readiness' };
+const CODING_ROLES = ['Developer', 'Frontend Developer', 'Backend Developer', 'Full Stack Developer', 'Designer', 'Database Administrator (DBA)', 'Data Analyst', 'QA Engineer', 'DevOps Engineer', 'Other'];
+const TYPE_LABEL = { resume: 'Resume Building', 'job-readiness': 'Job Readiness', coding: 'Coding Practice' };
 const TOOLTIP_STYLE = { backgroundColor: 'var(--bg-card, #111827)', border: '1px solid var(--border-light, #374151)', borderRadius: 12, color: 'var(--text-primary, #f9fafb)', fontSize: 12 };
 
 function unwrap(response) { return response?.data?.data ?? response?.data; }
 function errorMessage(error) { return error?.message || 'Something went wrong. Please try again.'; }
-function newSubmissionId() { return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 function average(value) { return value == null ? '—' : `${Math.round(value)}%`; }
 
 export default function Practice() {
@@ -24,18 +24,23 @@ export default function Practice() {
   const [challengeRole, setChallengeRole] = useState(ROLES[0]);
   const [challengeDifficulty, setChallengeDifficulty] = useState('all');
   const [selectedChallenge, setSelectedChallenge] = useState(null);
+  const [codingMode, setCodingMode] = useState(false);
+  const [codingRoleChoice, setCodingRoleChoice] = useState(CODING_ROLES[0]);
+  const [customCodingRole, setCustomCodingRole] = useState('');
+  const [codingQuestion, setCodingQuestion] = useState(null);
+  const [codingAnswer, setCodingAnswer] = useState('');
+  const [codingResult, setCodingResult] = useState(null);
+  const [generatingQuestion, setGeneratingQuestion] = useState(false);
   const [targetRole, setTargetRole] = useState('');
   const [answer, setAnswer] = useState({});
   const [result, setResult] = useState(null);
   const [historyFilter, setHistoryFilter] = useState('all');
   const [stats, setStats] = useState(null);
   const [attempts, setAttempts] = useState([]);
-  const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const submissionId = useRef(null);
 
   const loadChallenges = useCallback(async () => {
     setLoading(true);
@@ -57,9 +62,8 @@ export default function Practice() {
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
     try {
-      const type = historyFilter === 'all' ? 'all' : historyFilter;
       const [statsResponse, attemptResponse] = await Promise.all([
-        apiClient.get('/practice/stats', { params: { type } }),
+        apiClient.get('/practice/stats', { params: { type: historyFilter } }),
         apiClient.get('/practice/attempts', { params: historyFilter === 'all' ? {} : { type: historyFilter }, }),
       ]);
       setStats(unwrap(statsResponse));
@@ -94,14 +98,11 @@ export default function Practice() {
     }
     setAnswer(initial);
     setResult(null);
-    setDetail(null);
     setError('');
-    submissionId.current = null;
   };
 
   const updateAnswer = (update) => {
     setAnswer(previous => ({ ...previous, ...update }));
-    submissionId.current = null;
   };
 
   const handleSubmit = async (event) => {
@@ -109,16 +110,13 @@ export default function Practice() {
     if (!selectedChallenge || submitting) return;
     setSubmitting(true);
     setError('');
-    submissionId.current ||= newSubmissionId();
     try {
       const response = await apiClient.post('/practice/attempts', {
         challengeId: selectedChallenge.id,
         answer,
         targetRole,
-        submissionId: submissionId.current,
       });
       setResult(unwrap(response));
-      submissionId.current = null;
     } catch (requestError) {
       setError(errorMessage(requestError));
     } finally {
@@ -126,21 +124,56 @@ export default function Practice() {
     }
   };
 
+  const selectedCodingRole = codingRoleChoice === 'Other' ? customCodingRole.trim() : codingRoleChoice;
+
+  const generateCodingQuestion = async () => {
+    if (!selectedCodingRole) {
+      setError('Enter the role you want to practise for.');
+      return;
+    }
+    setGeneratingQuestion(true);
+    setError('');
+    setCodingQuestion(null);
+    setCodingAnswer('');
+    setCodingResult(null);
+    try {
+      const response = await apiClient.post('/practice/coding/question', { targetRole: selectedCodingRole });
+      setCodingQuestion(unwrap(response));
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setGeneratingQuestion(false);
+    }
+  };
+
+  const submitCodingAnswer = async (event) => {
+    event.preventDefault();
+    if (!codingQuestion || !codingAnswer.trim() || submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const response = await apiClient.post('/practice/coding/evaluate', {
+        targetRole: selectedCodingRole,
+        question: codingQuestion,
+        answer: codingAnswer,
+      });
+      setCodingResult(unwrap(response));
+    } catch (requestError) {
+      setError(errorMessage(requestError));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const retryCodingAction = () => codingQuestion
+    ? submitCodingAnswer({ preventDefault() {} })
+    : generateCodingQuestion();
+
   const retryChallenge = () => {
     openChallenge(selectedChallenge);
   };
 
-  const openAttempt = async (attempt) => {
-    setError('');
-    try {
-      const response = await apiClient.get(`/practice/attempts/${attempt.id}`);
-      setDetail(unwrap(response));
-    } catch (requestError) {
-      setError(errorMessage(requestError));
-    }
-  };
-
-  const clearChallenge = () => { setSelectedChallenge(null); setResult(null); setError(''); };
+  const clearChallenge = () => { setSelectedChallenge(null); setResult(null); setCodingMode(false); setCodingQuestion(null); setCodingAnswer(''); setCodingResult(null); setError(''); };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 pb-12">
@@ -148,21 +181,31 @@ export default function Practice() {
         <div>
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-500">Student practice</p>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Practice</h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>Build stronger resume evidence and learn to assess job requirements.</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>Practise resume writing, job readiness, and role-specific coding in one place.</p>
         </div>
         <div className="flex rounded-xl border p-1" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }} role="tablist" aria-label="Practice views">
           {[['practice', 'Practice'], ['history', 'History']].map(([key, label]) => (
-            <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setSelectedChallenge(null); setDetail(null); }}
+            <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => { setTab(key); setSelectedChallenge(null); setCodingMode(false); }}
               className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${tab === key ? 'bg-cyan-500 text-white shadow' : ''}`}
               style={tab === key ? undefined : { color: 'var(--text-muted)' }}>{label}</button>
           ))}
         </div>
       </header>
 
-      {error && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-500"><span>{error}</span><button type="button" onClick={() => tab === 'history' ? loadHistory() : loadChallenges()} className="font-semibold underline">Retry</button></div>}
+      {error && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-500"><span>{error}</span><button type="button" onClick={() => tab === 'history' ? loadHistory() : codingMode ? retryCodingAction() : loadChallenges()} className="font-semibold underline">Retry</button></div>}
 
       {tab === 'practice' ? (
-        selectedChallenge ? (
+        codingMode ? (
+          <CodingPracticeWorkspace
+            roleChoice={codingRoleChoice} setRoleChoice={setCodingRoleChoice}
+            customRole={customCodingRole} setCustomRole={setCustomCodingRole}
+            question={codingQuestion} answer={codingAnswer} setAnswer={setCodingAnswer}
+            result={codingResult} generating={generatingQuestion} submitting={submitting}
+            onGenerate={generateCodingQuestion} onSubmit={submitCodingAnswer}
+            onBack={() => { setCodingMode(false); setCodingQuestion(null); setCodingAnswer(''); setCodingResult(null); setError(''); }}
+            onRetry={generateCodingQuestion} onHistory={() => { setCodingMode(false); setTab('history'); }}
+          />
+        ) : selectedChallenge ? (
           <ChallengeWorkspace
             challenge={selectedChallenge} targetRole={targetRole} setTargetRole={setTargetRole}
             answer={answer} updateAnswer={updateAnswer} result={result} submitting={submitting}
@@ -182,15 +225,14 @@ export default function Practice() {
               <div className="grid gap-5 md:grid-cols-2">
                 <PracticeTypeCard type="resume" icon={FileText} title="Resume Building Challenge" description="Practise writing evidence-based summaries, improving project descriptions, and organizing resume sections." onClick={() => setChallengeType('resume')} />
                 <PracticeTypeCard type="job-readiness" icon={BriefcaseBusiness} title="Job Readiness Challenge" description="Read job descriptions, identify requirements, assess documented skills, and plan your next steps." onClick={() => setChallengeType('job-readiness')} />
+                <PracticeTypeCard type="coding" icon={Code2} title="Coding Practice" description="Choose your target role and get a fresh, practical coding question generated and evaluated with Gemini." onClick={() => { setCodingMode(true); setError(''); }} />
               </div>
             )}
           </>
         )
       ) : (
-        <HistoryView filter={historyFilter} setFilter={setHistoryFilter} stats={stats} attempts={attempts} loading={historyLoading} onOpen={openAttempt} onPractice={() => setTab('practice')} />
+        <HistoryView filter={historyFilter} setFilter={setHistoryFilter} stats={stats} attempts={attempts} loading={historyLoading} onPractice={() => setTab('practice')} />
       )}
-
-      {detail && <AttemptDetails attempt={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }
@@ -202,6 +244,28 @@ function PracticeTypeCard({ type, icon: Icon, title, description, onClick }) {
     <p className="mt-2 max-w-lg text-sm leading-6" style={{ color: 'var(--text-muted)' }}>{description}</p>
     <span className="mt-auto inline-flex items-center gap-2 pt-6 text-sm font-bold text-cyan-600">Start Practising <ArrowRight size={16} className="transition group-hover:translate-x-1" /></span>
   </button>;
+}
+
+function CodingPracticeWorkspace({ roleChoice, setRoleChoice, customRole, setCustomRole, question, answer, setAnswer, result, generating, submitting, onGenerate, onSubmit, onBack, onRetry, onHistory }) {
+  return <section className="rounded-2xl border p-5 sm:p-7" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}>
+    <button type="button" onClick={onBack} className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-cyan-600"><ArrowLeft size={16} /> All practice types</button>
+    <div className="mb-5"><p className="text-xs font-bold uppercase tracking-wide text-cyan-600">Gemini coding practice</p><h2 className="mt-1 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Choose a target role</h2><p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>Get a fresh, practical task for your role. These are short work-style exercises, not competitive programming puzzles.</p></div>
+    <div className="flex flex-wrap items-end gap-3">
+      <label className="min-w-64 flex-1 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Target role<select value={roleChoice} disabled={Boolean(question)} onChange={event => setRoleChoice(event.target.value)} className="mt-1 block w-full rounded-lg border px-3 py-2.5 text-sm disabled:opacity-70" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{CODING_ROLES.map(role => <option key={role}>{role}</option>)}</select></label>
+      {roleChoice === 'Other' && <label className="min-w-64 flex-1 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Your role<input value={customRole} disabled={Boolean(question)} onChange={event => setCustomRole(event.target.value)} maxLength={100} placeholder="e.g. Salesforce Administrator" className="mt-1 block w-full rounded-lg border px-3 py-2.5 text-sm disabled:opacity-70" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-primary)' }} /></label>}
+      {!question && <button type="button" onClick={onGenerate} disabled={generating || !roleChoice || (roleChoice === 'Other' && !customRole.trim())} className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{generating && <LoaderCircle size={16} className="animate-spin" />}{generating ? 'Generating…' : 'Generate question'}</button>}
+    </div>
+    {question && <div className="mt-6 space-y-5">
+      <div className="rounded-xl border p-4 sm:p-5" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-subtle, rgba(100,116,139,0.06))' }}>
+        <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{question.title}</h3><div className="flex flex-wrap gap-2"><span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-bold text-cyan-700">{question.language} · {question.targetRole}</span><span className="rounded-full bg-slate-500/10 px-3 py-1 text-xs font-bold" style={{ color: 'var(--text-muted)' }}>{question.difficulty || 'Beginner'}</span></div></div>
+        <p className="mt-3 whitespace-pre-wrap text-sm leading-6" style={{ color: 'var(--text-secondary)' }}>{question.question}</p>
+        {question.constraints?.length > 0 && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-cyan-600">Constraints</h4><ul className="mt-2 list-inside list-disc space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>{question.constraints.map((item, index) => <li key={`${index}-${item}`}>{item}</li>)}</ul></div>}
+        {question.testCases?.length > 0 && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-cyan-600">Example test cases</h4><div className="mt-2 grid gap-2 sm:grid-cols-2">{question.testCases.map((test, index) => <div key={`${index}-${test.input}`} className="rounded-lg border p-3 text-xs" style={{ borderColor: 'var(--border-light)', color: 'var(--text-secondary)' }}><p className="font-bold">Example {index + 1}</p><p className="mt-1 break-words"><strong>Input:</strong> {test.input}</p><p className="mt-1 break-words"><strong>Expected:</strong> {test.expectedOutput}</p></div>)}</div></div>}
+      </div>
+      {!result && <form onSubmit={onSubmit} className="space-y-3"><label className="block text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Your solution<textarea value={answer} onChange={event => setAnswer(event.target.value)} required maxLength={20000} rows={14} spellCheck={false} placeholder={`Write your ${question.language} solution here…`} className="mt-2 block w-full rounded-xl border p-4 font-mono text-sm leading-6 outline-none focus:border-cyan-500" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-input, transparent)', color: 'var(--text-primary)' }} /></label><div className="flex items-center justify-between gap-3"><span className="text-xs" style={{ color: 'var(--text-muted)' }}>Your code is evaluated by Gemini and is not executed or saved.</span><button type="submit" disabled={submitting || !answer.trim()} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60">{submitting && <LoaderCircle size={16} className="animate-spin" />}{submitting ? 'Evaluating…' : 'Submit solution'}</button></div></form>}
+      {result && <EvaluationResult result={result} onRetry={onRetry} onHistory={onHistory} />}
+    </div>}
+  </section>;
 }
 
 function ChallengeCard({ challenge, onClick }) {
@@ -222,7 +286,7 @@ function ChallengeWorkspace({ challenge, targetRole, setTargetRole, answer, upda
       {challenge.type === 'resume' && challenge.targetRoles?.length > 1 && <label className="min-w-52 text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Target role<select value={targetRole} onChange={event => { setTargetRole(event.target.value); }} className="mt-1 block w-full rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}>{challenge.targetRoles.map(role => <option key={role}>{role}</option>)}</select></label>}
     </div>
     <ChallengePrompt challenge={challenge} answer={answer} updateAnswer={updateAnswer} />
-    {result ? <EvaluationResult result={result} onRetry={onRetry} onHistory={onHistory} /> : <form onSubmit={onSubmit} className="mt-6 border-t pt-5" style={{ borderColor: 'var(--border-light)' }}><button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-700 disabled:cursor-wait disabled:opacity-60">{submitting && <LoaderCircle size={16} className="animate-spin" />}{submitting ? 'Evaluating…' : 'Submit answer'}</button><span className="ml-3 text-xs" style={{ color: 'var(--text-muted)' }}>Your attempt is saved to your private history.</span></form>}
+    {result ? <EvaluationResult result={result} onRetry={onRetry} onHistory={onHistory} /> : <form onSubmit={onSubmit} className="mt-6 border-t pt-5" style={{ borderColor: 'var(--border-light)' }}><button type="submit" disabled={submitting} className="inline-flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-700 disabled:cursor-wait disabled:opacity-60">{submitting && <LoaderCircle size={16} className="animate-spin" />}{submitting ? 'Evaluating…' : 'Submit answer'}</button><span className="ml-3 text-xs" style={{ color: 'var(--text-muted)' }}>Only the practice type, timestamp, and score are added to history.</span></form>}
   </section>;
 }
 
@@ -259,25 +323,20 @@ function EvaluationResult({ result, onRetry, onHistory }) {
 }
 function FeedbackList({ title, items = [], good = false }) { return <div><h4 className={`mb-2 text-xs font-bold uppercase tracking-wide ${good ? 'text-emerald-600' : 'text-amber-600'}`}>{title}</h4>{items.length ? <ul className="space-y-1.5">{items.map((item, index) => <li key={`${item}-${index}`} className="flex gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}><span>{good ? <Check size={15} className="mt-0.5 text-emerald-500" /> : <CircleHelp size={15} className="mt-0.5 text-amber-500" />}</span><span>{item}</span></li>)}</ul> : <p className="text-xs" style={{ color: 'var(--text-muted)' }}>No items to show.</p>}</div>; }
 
-function HistoryView({ filter, setFilter, stats, attempts, loading, onOpen, onPractice }) {
-  const chart = useMemo(() => (stats?.chart || []).map((point, index) => ({ ...point, index: index + 1, resumeScore: point.type === 'resume' ? point.score : null, jobScore: point.type === 'job-readiness' ? point.score : null })), [stats]);
+function HistoryView({ filter, setFilter, stats, attempts, loading, onPractice }) {
+  const chart = useMemo(() => (stats?.chart || []).map((point, index) => ({ ...point, index: index + 1 })), [stats]);
   const customTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null;
     const point = payload[0].payload;
-    return <div className="rounded-xl border p-3 shadow-lg" style={TOOLTIP_STYLE}><p className="font-bold">{point.challengeName}</p><p>{TYPE_LABEL[point.type]}</p><p>{new Date(point.date).toLocaleString()} · {point.score}%</p></div>;
+    return <div className="rounded-xl border p-3 shadow-lg" style={TOOLTIP_STYLE}><p className="font-bold">{TYPE_LABEL[point.type] || 'Practice'}</p><p>{new Date(point.date).toLocaleString()}</p><p>Score: {point.score}%</p></div>;
   };
   return <div className="space-y-5">
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[['Total attempts', stats?.summary?.totalAttempts ?? 0], ['Resume average', average(stats?.summary?.resumeAverage)], ['Job readiness average', average(stats?.summary?.jobReadinessAverage)], ['Overall average', average(stats?.summary?.overallAverage)]].map(([label, value]) => <div key={label} className="rounded-2xl border p-4" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}><p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{label}</p><p className="mt-2 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p></div>)}</div>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{[['Total sessions', stats?.summary?.totalAttempts ?? 0], ['Resume average', average(stats?.summary?.resumeAverage)], ['Job readiness average', average(stats?.summary?.jobReadinessAverage)], ['Coding average', average(stats?.summary?.codingAverage)], ['Overall average', average(stats?.summary?.overallAverage)]].map(([label, value]) => <div key={label} className="rounded-2xl border p-4" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}><p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>{label}</p><p className="mt-2 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p></div>)}</div>
     <section className="rounded-2xl border p-5" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>Score progression</h2><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Scores shown in chronological attempt order.</p></div><select value={filter} onChange={event => setFilter(event.target.value)} aria-label="Filter practice history" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}><option value="all">All practice</option><option value="resume">Resume Building</option><option value="job-readiness">Job Readiness</option></select></div>
-      {loading ? <LoadingState label="Loading your history…" /> : chart.length ? <div className="h-72 w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={chart} margin={{ top: 8, right: 16, left: -15, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" stroke="var(--border-light, #334155)" opacity={0.55} /><XAxis dataKey="index" tickFormatter={value => { const point = chart[value - 1]; return point ? new Date(point.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : value; }} stroke="var(--text-muted, #94a3b8)" fontSize={10} /><YAxis domain={[0, 100]} stroke="var(--text-muted, #94a3b8)" fontSize={10} /><Tooltip content={customTooltip} /><Legend /><Line type="monotone" dataKey="resumeScore" name="Resume Building" stroke="#06b6d4" strokeWidth={2.5} connectNulls={false} dot={{ r: 3 }} activeDot={{ r: 5 }} /><Line type="monotone" dataKey="jobScore" name="Job Readiness" stroke="#8b5cf6" strokeWidth={2.5} connectNulls={false} dot={{ r: 3 }} activeDot={{ r: 5 }} /></LineChart></ResponsiveContainer></div> : <div className="py-8 text-center"><Clock3 size={30} className="mx-auto text-slate-400"/><p className="mt-2 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>No completed attempts yet</p><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Complete a practice challenge to see your progress here.</p></div>}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>Score progression</h2><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Each point is stored as its practice type, timestamp, and score.</p></div><select value={filter} onChange={event => setFilter(event.target.value)} aria-label="Filter practice history" className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)', color: 'var(--text-primary)' }}><option value="all">All practice</option><option value="resume">Resume Building</option><option value="job-readiness">Job Readiness</option><option value="coding">Coding Practice</option></select></div>
+      {loading ? <LoadingState label="Loading your history…" /> : chart.length ? <div className="h-72 w-full"><ResponsiveContainer width="100%" height="100%"><LineChart data={chart} margin={{ top: 8, right: 16, left: -15, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" stroke="var(--border-light, #334155)" opacity={0.55} /><XAxis dataKey="index" tickFormatter={value => { const point = chart[value - 1]; return point ? new Date(point.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : value; }} stroke="var(--text-muted, #94a3b8)" fontSize={10} /><YAxis domain={[0, 100]} stroke="var(--text-muted, #94a3b8)" fontSize={10} /><Tooltip content={customTooltip} /><Line type="monotone" dataKey="score" name="Score" stroke="#06b6d4" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} /></LineChart></ResponsiveContainer></div> : <div className="py-8 text-center"><Clock3 size={30} className="mx-auto text-slate-400"/><p className="mt-2 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>No practice history yet</p><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>Complete any practice session to see its score here.</p></div>}
     </section>
-    <section className="overflow-hidden rounded-2xl border" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}><div className="border-b px-5 py-4" style={{ borderColor: 'var(--border-light)' }}><h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>Attempt history</h2></div>{loading ? <LoadingState label="Loading attempts…" /> : attempts.length ? <div className="divide-y" style={{ borderColor: 'var(--border-light)' }}>{attempts.map(attempt => <div key={attempt.id} className="flex flex-wrap items-center gap-3 px-5 py-4"><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{attempt.challengeName}</p><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>{TYPE_LABEL[attempt.challengeType]} · {new Date(attempt.createdAt).toLocaleString()}</p></div><span className="rounded-full bg-cyan-500/10 px-3 py-1 text-sm font-bold text-cyan-700">{attempt.score}%</span><button type="button" onClick={() => onOpen(attempt)} className="rounded-lg border px-3 py-2 text-xs font-semibold" style={{ borderColor: 'var(--border-light)', color: 'var(--text-primary)' }}>View details</button></div>)}</div> : <div className="p-8 text-center"><p className="text-sm" style={{ color: 'var(--text-muted)' }}>No attempts match this filter. Start a challenge to build your private history.</p><button type="button" onClick={onPractice} className="mt-3 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-bold text-white">Start practising</button></div>}</section>
+    <section className="overflow-hidden rounded-2xl border" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}><div className="border-b px-5 py-4" style={{ borderColor: 'var(--border-light)' }}><h2 className="font-bold" style={{ color: 'var(--text-primary)' }}>Practice history</h2></div>{loading ? <LoadingState label="Loading history…" /> : attempts.length ? <div className="divide-y" style={{ borderColor: 'var(--border-light)' }}>{attempts.map(attempt => <div key={attempt.id} className="flex items-center gap-3 px-5 py-4"><div className="min-w-0 flex-1"><p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{TYPE_LABEL[attempt.practiceType] || 'Practice'}</p><p className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>{new Date(attempt.timestamp).toLocaleString()}</p></div><span className="rounded-full bg-cyan-500/10 px-3 py-1 text-sm font-bold text-cyan-700">{attempt.score}%</span></div>)}</div> : <div className="p-8 text-center"><p className="text-sm" style={{ color: 'var(--text-muted)' }}>No sessions match this filter.</p><button type="button" onClick={onPractice} className="mt-3 rounded-lg bg-cyan-600 px-4 py-2 text-sm font-bold text-white">Start practising</button></div>}</section>
   </div>;
 }
-
-function AttemptDetails({ attempt, onClose }) {
-  return <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><section role="dialog" aria-modal="true" aria-labelledby="attempt-title" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border p-5 shadow-2xl sm:p-7" style={{ borderColor: 'var(--border-light)', background: 'var(--bg-card)' }}><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-wide text-cyan-600">{TYPE_LABEL[attempt.challengeType]} · {new Date(attempt.createdAt).toLocaleString()}</p><h2 id="attempt-title" className="mt-1 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{attempt.challengeName}</h2><p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>Score: <strong style={{ color: 'var(--text-primary)' }}>{attempt.score}/100</strong>{attempt.targetRole ? ` · Target role: ${attempt.targetRole}` : ''}</p></div><button type="button" onClick={onClose} className="rounded-lg border px-3 py-1.5 text-sm" style={{ borderColor: 'var(--border-light)', color: 'var(--text-primary)' }}>Close</button></div><div className="mt-5 space-y-4"><ReportBlock title="Submitted answer" value={attempt.submittedAnswer} /><ReportBlock title="Criteria scores" value={attempt.criteriaScores} /><ReportBlock title="Feedback" value={attempt.feedback} />{attempt.suggestedAnswer && <ReportBlock title="Reference answer" value={attempt.suggestedAnswer} />}</div></section></div>;
-}
-function ReportBlock({ title, value }) { return <section className="rounded-xl border p-4" style={{ borderColor: 'var(--border-light)' }}><h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-cyan-600">{title}</h3><pre className="whitespace-pre-wrap break-words font-sans text-sm leading-6" style={{ color: 'var(--text-secondary)' }}>{typeof value === 'string' ? value : JSON.stringify(value, null, 2)}</pre></section>; }
 function LoadingState({ label }) { return <div className="flex items-center justify-center gap-2 py-12 text-sm" style={{ color: 'var(--text-muted)' }}><LoaderCircle size={17} className="animate-spin" />{label}</div>; }
