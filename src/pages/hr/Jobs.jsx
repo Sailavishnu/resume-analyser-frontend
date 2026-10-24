@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHrStore } from '../../store/hrStore';
+import api from '../../services/apiClient';
 import {
   Plus, Briefcase, MapPin, Sparkles, Building, Settings,
   Check, Trash2, ArrowUpRight, Users, CheckCircle2,
@@ -18,6 +19,11 @@ export default function Jobs() {
   const { campaigns, createCampaign, setSelectedCampaignId, fetchJobs, loading: jobsLoading } = useHrStore();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [companyProfileLoading, setCompanyProfileLoading] = useState(true);
+  const [companyProfileError, setCompanyProfileError] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [companyLocation, setCompanyLocation] = useState('');
 
   // Form states
   const [title, setTitle] = useState('');
@@ -27,7 +33,19 @@ export default function Jobs() {
   const [skills, setSkills] = useState('');
   const [preferredSkills, setPreferredSkills] = useState('');
 
-  useEffect(() => { fetchJobs().catch(error => toast.error(error.message || 'Could not load job postings')); }, [fetchJobs]);
+  useEffect(() => {
+    fetchJobs().catch(error => toast.error(error.message || 'Could not load job postings'));
+    api.get('/users/hr/profile')
+      .then(response => {
+        const profile = response.data?.data || {};
+        setCompanyProfile(profile);
+        setCompanyName(profile.company_name || '');
+        setCompanyLocation(profile.location || '');
+        setCompanyProfileError('');
+      })
+      .catch(error => setCompanyProfileError(error.message || 'Could not load your company profile.'))
+      .finally(() => setCompanyProfileLoading(false));
+  }, [fetchJobs]);
 
   // Coordinated weights totaling exactly 100%
   const [weights, setWeights] = useState({
@@ -77,6 +95,24 @@ export default function Jobs() {
     toast.loading('Saving job posting...', { id: 'camp' });
 
     try {
+      if (!companyProfile?.company_id) {
+        if (!companyName.trim() || !companyLocation.trim()) {
+          toast.error('Add your company name and location to create its profile before posting this job.', { id: 'camp' });
+          setLoading(false);
+          return;
+        }
+        const profileResponse = await api.patch('/users/hr/profile', {
+          company_name: companyName.trim(),
+          location: companyLocation.trim(),
+          website: companyProfile?.website || '',
+          industry: companyProfile?.industry || '',
+          company_size: companyProfile?.company_size || '',
+          description: companyProfile?.description || '',
+          job_title: companyProfile?.job_title || '',
+          phone: companyProfile?.phone || '',
+        });
+        setCompanyProfile(profileResponse.data?.data || {});
+      }
       await createCampaign({
         title,
         department: dept,
@@ -184,11 +220,14 @@ export default function Jobs() {
         footerActions={
           <>
             <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button variant="teal" size="sm" onClick={handleLaunch} loading={loading}>Launch Job</Button>
+            <Button variant="teal" size="sm" onClick={handleLaunch} loading={loading} disabled={companyProfileLoading || Boolean(companyProfileError)}>Launch Job</Button>
           </>
         }
       >
         <form onSubmit={handleLaunch} className="space-y-4">
+          {companyProfileLoading && <p className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-gray-400">Loading your company profile…</p>}
+          {!companyProfileLoading && companyProfileError && <div role="alert" className="rounded-lg border border-rose-400/20 bg-rose-400/5 p-3 text-sm text-rose-300">{companyProfileError} <button type="button" onClick={() => navigate('/hr/company')} className="ml-1 underline">Open company profile</button></div>}
+          {!companyProfileLoading && !companyProfileError && !companyProfile?.company_id && <div className="space-y-3 rounded-xl border border-brand-teal/20 bg-brand-teal/[0.05] p-4"><div><p className="text-sm font-semibold text-white">Set up your company</p><p className="mt-1 text-xs text-gray-400">Jobs are linked to an employer profile so students can see who is hiring. This is saved to your HR account.</p></div><div className="grid gap-3 sm:grid-cols-2"><Input label="Company name" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="e.g. Acme Technologies" required /><Input label="Company location" value={companyLocation} onChange={e => setCompanyLocation(e.target.value)} placeholder="City or Remote" required /></div><button type="button" onClick={() => navigate('/hr/company')} className="text-xs text-brand-teal underline">Add more company details</button></div>}
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="Position Title"

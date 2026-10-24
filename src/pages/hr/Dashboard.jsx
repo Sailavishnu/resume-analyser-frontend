@@ -264,7 +264,6 @@ export default function HrDashboard() {
               <p className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">AI Tools</p>
               {[
                 { label: 'AI Candidate Screening', path: '/hr/screening', icon: ShieldCheck },
-                { label: 'Talent Pool Matrix', path: '/hr/talent-pool', icon: Brain },
                 { label: 'JD Generator', path: '/hr/jd-generator', icon: Sparkles },
               ].map(({ label, path, icon: Icon }) => (
                 <button

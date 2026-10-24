@@ -62,10 +62,8 @@ export const useHrStore = create((set, get) => ({
 
   setCandidateStatus: async (applicationId, status) => {
     await api.patch(`/hr/candidates/${applicationId}/status`, { status });
-    if (status === 'hired') {
-      set(state => ({ candidates: state.candidates.filter(candidate => candidate.id !== applicationId) }));
-      await get().fetchAcceptedStudents();
-    } else await get().fetchCandidates();
+    await get().fetchCandidates();
+    if (status === 'hired') await get().fetchAcceptedStudents();
   },
 
   createCampaign: async (data) => {
@@ -82,14 +80,18 @@ export const useHrStore = create((set, get) => ({
     return campaign;
   },
 
-  screenZip: async (file, jobId) => {
+  screenZip: async (file) => {
     const body = new FormData();
     body.append('archive', file);
-    body.append('job_id', jobId);
     set({ parsing: true });
     try {
       const res = await api.post('/hr/screening/zip', body, { timeout: 120000 });
       return res.data?.data || [];
     } finally { set({ parsing: false }); }
+  },
+
+  rankZip: async (sessionId, criteria) => {
+    const res = await api.post(`/hr/screening/rank/${encodeURIComponent(sessionId)}`, criteria, { timeout: 120000 });
+    return res.data?.data || { results: [] };
   },
 }));

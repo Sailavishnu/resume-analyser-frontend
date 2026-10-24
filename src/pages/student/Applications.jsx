@@ -74,6 +74,12 @@ export default function Applications() {
     return matchesSearch && matchesStatus;
   });
 
+  const terminalStatuses = new Set(['hired', 'accepted', 'rejected', 'declined']);
+  const decidedJobIds = new Set((applications || [])
+    .filter(app => terminalStatuses.has(String(app.status || '').trim().toLowerCase().replaceAll(' ', '_')))
+    .map(app => String(app.job_id || app.jobId || '')));
+  const openJobs = (jobs || []).filter(job => !decidedJobIds.has(String(job.id || job._id || '')));
+
   const handleSaveNote = () => {
     if (!newNote.trim() || !selectedApp) return;
     setLocalNotes(prev => ({
@@ -105,7 +111,7 @@ export default function Applications() {
 
       <section className="space-y-3">
         <div><h2 className="text-lg font-bold text-white">Open job postings</h2><p className="text-xs text-gray-400">Apply to jobs published by HR teams using your selected resume.</p></div>
-        {jobs.length === 0 ? <Card className="p-6 text-sm text-gray-400">No open job postings are available right now.</Card> : <div className="grid gap-4 md:grid-cols-2">{jobs.map(job => {
+        {jobs.length === 0 ? <Card className="p-6 text-sm text-gray-400">No open job postings are available right now.</Card> : openJobs.length === 0 ? <Card className="p-6 text-sm text-gray-400">You have applied to all currently available jobs. Check the tracker below for application updates.</Card> : <div className="grid gap-4 md:grid-cols-2">{openJobs.map(job => {
           const alreadyApplied = applications.some(app => app.job_id === job.id || app.job_id === job._id);
           return <Card key={job.id || job._id} className="space-y-3 p-5"><div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold text-white">{job.title}</h3><p className="text-xs text-gray-400">{job.company || job.company_name || 'Company'}{job.department ? ` · ${job.department}` : ''}{job.company_industry ? ` · ${job.company_industry}` : ''}</p></div><span className="text-xs text-gray-400">{job.work_mode || job.location}</span></div><p className="line-clamp-3 text-sm text-gray-300">{job.description}</p>{job.company_description && <p className="line-clamp-2 text-xs text-gray-400">{job.company_description}</p>}<p className="text-xs text-gray-400">{job.location}{job.company_location ? ` · ${job.company_location}` : ''}{job.company_website ? ` · ${job.company_website}` : ''}</p>{job.skillsRequired?.length > 0 && <p className="text-xs text-gray-400">Skills: {job.skillsRequired.join(', ')}</p>}<Button variant="teal" size="sm" disabled={alreadyApplied || applying === (job.id || job._id)} loading={applying === (job.id || job._id)} onClick={() => handleApply(job.id || job._id)}>{alreadyApplied ? 'Applied' : 'Apply'}</Button></Card>;
         })}</div>}

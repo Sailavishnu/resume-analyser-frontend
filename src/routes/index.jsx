@@ -33,7 +33,6 @@ const HrDashboard  = lazy(() => import('../pages/hr/Dashboard'));
 const HrJobs       = lazy(() => import('../pages/hr/Jobs'));
 const HrCandidates = lazy(() => import('../pages/hr/Candidates'));
 const HrScreening  = lazy(() => import('../pages/hr/Screening'));
-const TalentPool   = lazy(() => import('../pages/hr/TalentPool'));
 const JdGenerator  = lazy(() => import('../pages/hr/JdGenerator'));
 const HrInterviews = lazy(() => import('../pages/hr/Interviews'));
 const HrAnalytics  = lazy(() => import('../pages/hr/Analytics'));
@@ -121,7 +120,6 @@ export default function AppRoutes() {
           <Route path="jobs" element={<HrJobs />} />
           <Route path="candidates" element={<HrCandidates />} />
           <Route path="screening" element={<HrScreening />} />
-          <Route path="talent-pool" element={<TalentPool />} />
           <Route path="jd-generator" element={<JdGenerator />} />
           <Route path="interviews" element={<HrInterviews />} />
           <Route path="messages" element={<Messages />} />

@@ -5,7 +5,7 @@ import {
   LayoutDashboard, FilePlus, Sparkles, MessageSquare, Briefcase,
   BookOpen, User, Users, Calendar, LineChart, Building,
   GraduationCap, FileCheck, Sliders,
-  Compass, Layers, Brain, ShieldCheck, Cpu, Server, BookOpenCheck
+  Compass, Layers, ShieldCheck, Cpu, Server, BookOpenCheck
 } from 'lucide-react';
 
 export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSidebarMouseLeave }) {
@@ -33,7 +33,6 @@ export default function Sidebar({ mobileOpen, onMobileClose, onNavClick, onSideb
     { name: 'Job Postings',       to: '/hr/jobs',           icon: Briefcase },
     { name: 'Candidate Pipeline', to: '/hr/candidates',     icon: Users },
     { name: 'AI Screening',       to: '/hr/screening',      icon: ShieldCheck },
-    { name: 'Talent Pool',        to: '/hr/talent-pool',    icon: Brain },
     { name: 'JD Generator',       to: '/hr/jd-generator',   icon: Sparkles },
     { name: 'Interviews',         to: '/hr/interviews',     icon: Calendar },
     { name: 'Analytics & Reports',to: '/hr/analytics',      icon: LineChart },
